@@ -108,7 +108,7 @@
                 </button>
                 
                 <!-- Dificuldade -->
-                <button id="difficulty-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex-1">
+                <button id="difficulty-btn" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-bold transition-colors flex-1">
                     😊 FÁCIL
                 </button>
                 
@@ -321,6 +321,27 @@
             }
             
             selectPiece(row, col) {
+                // Verificar se há capturas obrigatórias no tabuleiro
+                const allPlayerMoves = this.getAllPossibleMoves(this.currentPlayer);
+                const mandatoryCaptures = allPlayerMoves.filter(m => m.moveData.type === 'capture');
+                
+                // Se há capturas obrigatórias, só permitir selecionar peças que podem capturar
+                if (mandatoryCaptures.length > 0) {
+                    const pieceCanCapture = mandatoryCaptures.some(m => 
+                        m.fromRow === row && m.fromCol === col
+                    );
+                    
+                    if (!pieceCanCapture) {
+                        // Mostrar mensagem que deve capturar
+                        document.getElementById('game-status').textContent = 'Captura obrigatória!';
+                        setTimeout(() => {
+                            const status = this.currentPlayer === 'red' ? 'Sua vez!' : 'Vez da IA';
+                            document.getElementById('game-status').textContent = status;
+                        }, 1500);
+                        return;
+                    }
+                }
+                
                 this.selectedPiece = { row, col };
                 this.validMoves = this.getPossibleMoves(row, col);
                 this.updateBoardDisplay();
@@ -337,13 +358,313 @@
                 if (!piece) return [];
                 
                 const moves = [];
+                
+                if (piece.isKing) {
+                    // DAMAS: Movimentos e capturas em múltiplas casas
+                    const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+                    
+                    directions.forEach(([deltaRow, deltaCol]) => {
+                        // Procurar por capturas em todas as distâncias
+                        for (let distance = 1; distance < Math.max(this.BOARD_SIZE, this.BOARD_SIZE); distance++) {
+                            const jumpRow = row + (deltaRow * distance);
+                            const jumpCol = col + (deltaCol * distance);
+                            
+                            if (!this.isValidPosition(jumpRow, jumpCol)) break;
+                            
+                            const jumpPiece = this.board[jumpRow][jumpCol];
+                            
+                            if (jumpPiece) {
+                                if (jumpPiece.color !== piece.color) {
+                                    // Encontrou peça inimiga, procurar casa de pouso
+                                    for (let landDistance = distance + 1; landDistance < Math.max(this.BOARD_SIZE, this.BOARD_SIZE); landDistance++) {
+                                        const landRow = row + (deltaRow * landDistance);
+                                        const landCol = col + (deltaCol * landDistance);
+                                        
+                                        if (!this.isValidPosition(landRow, landCol)) break;
+                                        
+                                        if (!this.board[landRow][landCol]) {
+                                            moves.push({
+                                                row: landRow,
+                                                col: landCol,
+                                                type: 'capture',
+                                                capturedRow: jumpRow,
+                                                capturedCol: jumpCol
+                                            });
+                                        } else {
+                                            break; // Bloqueado por outra peça
+                                        }
+                                    }
+                                }
+                                break; // Parar nesta direção (peça encontrada)
+                            }
+                        }
+                        
+                        // Movimentos normais da dama (se não há capturas)
+                        for (let distance = 1; distance < Math.max(this.BOARD_SIZE, this.BOARD_SIZE); distance++) {
+                            const newRow = row + (deltaRow * distance);
+                            const newCol = col + (deltaCol * distance);
+                            
+                            if (!this.isValidPosition(newRow, newCol)) break;
+                            
+                            if (!this.board[newRow][newCol]) {
+                                moves.push({ row: newRow, col: newCol, type: 'move' });
+                            } else {
+                                break; // Bloqueado
+                            }
+                        }
+                    });
+                } else {
+                    // PEÇAS NORMAIS: Capturas em todas as direções, movimentos só para frente
+                    const captureDirections = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+                    captureDirections.forEach(([deltaRow, deltaCol]) => {
+                        const jumpRow = row + deltaRow;
+                        const jumpCol = col + deltaCol;
+                        const landRow = row + (deltaRow * 2);
+                        const landCol = col + (deltaCol * 2);
+                        
+                        if (this.isValidPosition(jumpRow, jumpCol) && 
+                            this.isValidPosition(landRow, landCol) &&
+                            this.board[jumpRow][jumpCol] && 
+                            this.board[jumpRow][jumpCol].color !== piece.color &&
+                            !this.board[landRow][landCol]) {
+                            moves.push({ 
+                                row: landRow, 
+                                col: landCol, 
+                                type: 'capture',
+                                capturedRow: jumpRow,
+                                capturedCol: jumpCol
+                            });
+                        }
+                    });
+                    
+                    // Movimentos normais (apenas para frente se não há capturas)
+                    const directions = piece.color === 'red' 
+                        ? [[-1, -1], [-1, 1]]  // Vermelho para cima
+                        : [[1, -1], [1, 1]];   // Preto para baixo
+                    
+                    directions.forEach(([deltaRow, deltaCol]) => {
+                        const newRow = row + deltaRow;
+                        const newCol = col + deltaCol;
+                        
+                        if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                            moves.push({ row: newRow, col: newCol, type: 'move' });
+                        }
+                    });
+                }
+                
+                // Se há capturas disponíveis, retornar APENAS capturas
+                const captures = moves.filter(move => move.type === 'capture');
+                if (captures.length > 0) {
+                    return captures;
+                }
+                
+                return moves.filter(move => move.type === 'move');
+            }
+            
+            isValidPosition(row, col) {
+                return row >= 0 && row < this.BOARD_SIZE && col >= 0 && col < this.BOARD_SIZE;
+            }
+            
+            makeMove(fromRow, fromCol, toRow, toCol, moveData) {
+                console.log(`Movimento: (${fromRow},${fromCol}) → (${toRow},${toCol})`);
+                
+                // Verificações de segurança
+                if (!this.isValidPosition(fromRow, fromCol) || !this.isValidPosition(toRow, toCol)) {
+                    console.error('Posições inválidas no movimento');
+                    return;
+                }
+                
+                const piece = this.board[fromRow][fromCol];
+                if (!piece) {
+                    console.error('Nenhuma peça na posição de origem');
+                    return;
+                }
+                
+                if (this.board[toRow][toCol]) {
+                    console.error('Posição de destino ocupada');
+                    return;
+                }
+                
+                // Executar movimento
+                this.board[toRow][toCol] = piece;
+                this.board[fromRow][fromCol] = null;
+                console.log('Peça movida com sucesso');
+                
+                let continueCapturing = false;
+                
+                if (moveData && moveData.type === 'capture') {
+                    console.log('Processando captura...');
+                    this.board[moveData.capturedRow][moveData.capturedCol] = null;
+                    if (piece.color === 'red') {
+                        this.blackPieces--;
+                    } else {
+                        this.redPieces--;
+                    }
+                    
+                    // Verificar se há mais capturas possíveis com a mesma peça
+                    const additionalCaptures = this.getPossibleMoves(toRow, toCol)
+                        .filter(move => move.type === 'capture');
+                    
+                    if (additionalCaptures.length > 0) {
+                        // Continuar capturando com a mesma peça
+                        continueCapturing = true;
+                        this.selectedPiece = { row: toRow, col: toCol };
+                        this.validMoves = additionalCaptures;
+                        this.updateBoardDisplay();
+                        console.log('Capturas múltiplas disponíveis');
+                        return; // Não trocar de jogador ainda
+                    }
+                }
+                
+                // Promover a dama
+                if (!piece.isKing) {
+                    if ((piece.color === 'red' && toRow === 0) || 
+                        (piece.color === 'black' && toRow === 7)) {
+                        piece.isKing = true;
+                        console.log('Peça promovida a dama!');
+                    }
+                }
+                
+                this.deselectPiece();
+                this.checkGameOver();
+                
+                if (!this.gameOver && !continueCapturing) {
+                    this.currentPlayer = this.currentPlayer === 'red' ? 'black' : 'red';
+                    console.log('Mudando jogador para:', this.currentPlayer);
+                    this.updateDisplay();
+                    
+                    if (this.vsComputer && this.currentPlayer === 'black') {
+                        // Pequeno delay para ver o movimento
+                        setTimeout(() => {
+                            if (!this.gameOver && this.currentPlayer === 'black') {
+                                this.makeComputerMove();
+                            }
+                        }, 300);
+                    }
+                }
+            }
+            
+            makeComputerMove() {
+                if (this.isComputerThinking || this.gameOver) return;
+                
+                this.isComputerThinking = true;
+                document.getElementById('game-status').textContent = 'IA pensando...';
+                
+                // Tempo de "pensamento" baseado na dificuldade
+                const thinkingTime = {
+                    'easy': 400,
+                    'medium': 900,
+                    'hard': 2000  // IA Expert pensa mais tempo
+                };
+                
+                setTimeout(() => {
+                    try {
+                        console.log('IA começando movimento...');
+                        const allMoves = this.getAllPossibleMoves('black');
+                        console.log('Movimentos encontrados:', allMoves.length);
+                        
+                        if (allMoves.length > 0) {
+                            // Fazer movimento simples e direto
+                            const selectedMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+                            console.log('Movimento selecionado:', selectedMove);
+                            
+                            // Verificar se o movimento é válido
+                            if (this.isValidMove(selectedMove)) {
+                                console.log('Executando movimento...');
+                                this.makeMove(
+                                    selectedMove.fromRow,
+                                    selectedMove.fromCol,
+                                    selectedMove.moveData.row,
+                                    selectedMove.moveData.col,
+                                    selectedMove.moveData
+                                );
+                            } else {
+                                console.log('Movimento inválido, tentando outro...');
+                                // Tentar com o primeiro movimento válido
+                                for (let move of allMoves) {
+                                    if (this.isValidMove(move)) {
+                                        this.makeMove(
+                                            move.fromRow,
+                                            move.fromCol,
+                                            move.moveData.row,
+                                            move.moveData.col,
+                                            move.moveData
+                                        );
+                                        break;
+                                    }
+                                }
+                            }
+                        } else {
+                            console.log('IA sem movimentos - jogador venceu');
+                            this.endGame('red');
+                        }
+                    } catch (error) {
+                        console.error('Erro na IA:', error);
+                        // Em caso de erro, tentar movimento mais simples
+                        this.makeSimpleAIMove();
+                    }
+                    
+                    this.isComputerThinking = false;
+                    console.log('IA terminou movimento');
+                }, thinkingTime[this.difficulty]);
+            }
+            
+            isValidMove(move) {
+                if (!move || !move.moveData) return false;
+                
+                const { fromRow, fromCol, moveData } = move;
+                const { row: toRow, col: toCol } = moveData;
+                
+                // Verificar se posições são válidas
+                if (!this.isValidPosition(fromRow, fromCol) || !this.isValidPosition(toRow, toCol)) {
+                    return false;
+                }
+                
+                // Verificar se há peça na origem
+                if (!this.board[fromRow][fromCol] || this.board[fromRow][fromCol].color !== 'black') {
+                    return false;
+                }
+                
+                // Verificar se destino está livre
+                if (this.board[toRow][toCol]) {
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            makeSimpleAIMove() {
+                console.log('Tentando movimento simples...');
+                // Encontrar qualquer peça preta que pode se mover
+                for (let row = 0; row < this.BOARD_SIZE; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        const piece = this.board[row][col];
+                        if (piece && piece.color === 'black') {
+                            const simpleMoves = this.getSimpleMoves(row, col);
+                            if (simpleMoves.length > 0) {
+                                const move = simpleMoves[0];
+                                console.log('Movimento simples encontrado:', move);
+                                this.makeMove(row, col, move.row, move.col, move);
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+                // Se chegou aqui, IA realmente não tem movimentos
+                console.log('IA realmente sem movimentos');
+                this.endGame('red');
+            }
+            
+            getSimpleMoves(row, col) {
+                const piece = this.board[row][col];
+                if (!piece || piece.color !== 'black') return [];
+                
+                const moves = [];
                 const directions = piece.isKing 
                     ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
-                    : piece.color === 'red' 
-                        ? [[-1, -1], [-1, 1]]
-                        : [[1, -1], [1, 1]];
+                    : [[1, -1], [1, 1]]; // Peças pretas movem para baixo
                 
-                // Movimentos normais
                 directions.forEach(([deltaRow, deltaCol]) => {
                     const newRow = row + deltaRow;
                     const newCol = col + deltaCol;
@@ -353,105 +674,550 @@
                     }
                 });
                 
-                // Capturas (todas as direções para peças normais também)
-                const captureDirections = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
-                captureDirections.forEach(([deltaRow, deltaCol]) => {
-                    const jumpRow = row + deltaRow;
-                    const jumpCol = col + deltaCol;
-                    const landRow = row + (deltaRow * 2);
-                    const landCol = col + (deltaCol * 2);
-                    
-                    if (this.isValidPosition(jumpRow, jumpCol) && 
-                        this.isValidPosition(landRow, landCol) &&
-                        this.board[jumpRow][jumpCol] && 
-                        this.board[jumpRow][jumpCol].color !== piece.color &&
-                        !this.board[landRow][landCol]) {
-                        moves.push({ 
-                            row: landRow, 
-                            col: landCol, 
-                            type: 'capture',
-                            capturedRow: jumpRow,
-                            capturedCol: jumpCol
-                        });
-                    }
-                });
-                
                 return moves;
             }
             
-            isValidPosition(row, col) {
-                return row >= 0 && row < this.BOARD_SIZE && col >= 0 && col < this.BOARD_SIZE;
-            }
-            
-            makeMove(fromRow, fromCol, toRow, toCol, moveData) {
-                const piece = this.board[fromRow][fromCol];
-                this.board[toRow][toCol] = piece;
-                this.board[fromRow][fromCol] = null;
-                
-                if (moveData.type === 'capture') {
-                    this.board[moveData.capturedRow][moveData.capturedCol] = null;
-                    if (piece.color === 'red') {
-                        this.blackPieces--;
-                    } else {
-                        this.redPieces--;
-                    }
-                }
-                
-                // Promover a dama
-                if (!piece.isKing) {
-                    if ((piece.color === 'red' && toRow === 0) || 
-                        (piece.color === 'black' && toRow === 7)) {
-                        piece.isKing = true;
-                    }
-                }
-                
-                this.deselectPiece();
-                this.checkGameOver();
-                
-                if (!this.gameOver) {
-                    this.currentPlayer = this.currentPlayer === 'red' ? 'black' : 'red';
-                    this.updateDisplay();
-                    
-                    if (this.vsComputer && this.currentPlayer === 'black') {
-                        this.makeComputerMove();
-                    }
-                }
-            }
-            
-            makeComputerMove() {
-                if (this.isComputerThinking) return;
-                
-                this.isComputerThinking = true;
-                document.getElementById('game-status').textContent = 'IA pensando...';
-                
-                setTimeout(() => {
-                    const moves = this.getAllPossibleMoves('black');
-                    
-                    if (moves.length > 0) {
-                        let selectedMove;
+            chooseBestCapture(captures) {
+                switch(this.difficulty) {
+                    case 'easy':
+                        // Escolha aleatória
+                        return captures[Math.floor(Math.random() * captures.length)];
                         
-                        if (this.difficulty === 'easy' && Math.random() < 0.4) {
-                            // Movimento aleatório 40% do tempo
-                            selectedMove = moves[Math.floor(Math.random() * moves.length)];
-                        } else {
-                            // Priorizar capturas
-                            const captures = moves.filter(m => m.moveData.type === 'capture');
-                            selectedMove = captures.length > 0 
-                                ? captures[Math.floor(Math.random() * captures.length)]
-                                : moves[Math.floor(Math.random() * moves.length)];
+                    case 'medium':
+                        // Priorizar capturas que levam a mais capturas
+                        return this.getBestCaptureBasic(captures);
+                        
+                    case 'hard':
+                        // Análise profunda de capturas
+                        return this.getBestCaptureExpert(captures);
+                        
+                    default:
+                        return captures[Math.floor(Math.random() * captures.length)];
+                }
+            }
+            
+            getBestCaptureBasic(captures) {
+                let bestCaptures = [];
+                let maxValue = -1;
+                
+                captures.forEach(capture => {
+                    let value = 10; // Valor base da captura
+                    
+                    // Capturar peças mais avançadas vale mais
+                    value += (7 - capture.moveData.capturedRow) * 3;
+                    
+                    // Verificar se leva a mais capturas
+                    const additionalCaptures = this.simulateAdditionalCaptures(capture);
+                    value += additionalCaptures * 15;
+                    
+                    if (value > maxValue) {
+                        maxValue = value;
+                        bestCaptures = [capture];
+                    } else if (value === maxValue) {
+                        bestCaptures.push(capture);
+                    }
+                });
+                
+                return bestCaptures[Math.floor(Math.random() * bestCaptures.length)];
+            }
+            
+            getBestCaptureExpert(captures) {
+                let scoredCaptures = captures.map(capture => ({
+                    capture,
+                    score: this.evaluateCaptureExpert(capture)
+                }));
+                
+                // Ordenar por pontuação
+                scoredCaptures.sort((a, b) => b.score - a.score);
+                
+                // Escolher a melhor captura (IA Expert não erra!)
+                return scoredCaptures[0].capture;
+            }
+            
+            evaluateCaptureExpert(capture) {
+                let score = 20; // Valor base da captura
+                
+                // 1. Valor da peça capturada
+                const capturedRow = capture.moveData.capturedRow;
+                const capturedCol = capture.moveData.capturedCol;
+                const capturedPiece = this.board[capturedRow][capturedCol];
+                
+                if (capturedPiece.isKing) {
+                    score += 50; // Capturar dama é muito valioso!
+                } else {
+                    // Peças mais avançadas valem mais
+                    score += (7 - capturedRow) * 5;
+                }
+                
+                // 2. Capturas múltiplas
+                const additionalCaptures = this.simulateAdditionalCaptures(capture);
+                score += additionalCaptures * 25;
+                
+                // 3. Posição final após captura
+                if (this.isPositionSafe(capture.moveData.row, capture.moveData.col, 'black')) {
+                    score += 15;
+                } else {
+                    score -= 10; // Penalizar se ficar exposto
+                }
+                
+                // 4. Promoção após captura
+                if (capture.moveData.row === 7) {
+                    score += 40; // Capturar e virar dama!
+                }
+                
+                // 5. Controle territorial após captura
+                const centerDistance = Math.abs(capture.moveData.col - 3.5);
+                score += (4 - centerDistance) * 3;
+                
+                return score;
+            }
+            
+            chooseBestMove(allMoves) {
+                switch(this.difficulty) {
+                    case 'easy':
+                        // 70% movimentos aleatórios
+                        return allMoves[Math.floor(Math.random() * allMoves.length)];
+                        
+                    case 'medium':
+                        // Estratégia moderada: priorizar avanço
+                        return this.getMediumMove(allMoves);
+                        
+                    case 'hard':
+                        // IA EXPERT: análise profunda e estratégica
+                        return this.getExpertMove(allMoves);
+                        
+                    default:
+                        return allMoves[Math.floor(Math.random() * allMoves.length)];
+                }
+            }
+            
+            getMediumMove(allMoves) {
+                let scoredMoves = allMoves.map(move => ({
+                    move,
+                    score: this.evaluateMoveBasic(move)
+                }));
+                
+                // Ordenar por pontuação e escolher entre os 3 melhores
+                scoredMoves.sort((a, b) => b.score - a.score);
+                const topMoves = scoredMoves.slice(0, Math.min(3, scoredMoves.length));
+                
+                return topMoves[Math.floor(Math.random() * topMoves.length)].move;
+            }
+            
+            getExpertMove(allMoves) {
+                let scoredMoves = allMoves.map(move => ({
+                    move,
+                    score: this.evaluateMoveExpert(move)
+                }));
+                
+                // Ordenar por pontuação e escolher o melhor movimento
+                scoredMoves.sort((a, b) => b.score - a.score);
+                
+                // IA Expert escolhe sempre um dos 2 melhores movimentos
+                const bestMoves = scoredMoves.slice(0, Math.min(2, scoredMoves.length));
+                return bestMoves[Math.floor(Math.random() * bestMoves.length)].move;
+            }
+            
+            evaluateMoveBasic(move) {
+                let score = 0;
+                const piece = this.board[move.fromRow][move.fromCol];
+                
+                // Avanço (mais importante)
+                if (move.moveData.row > move.fromRow) {
+                    score += 20;
+                    
+                    // Muito perto de virar dama
+                    if (move.moveData.row >= 6) {
+                        score += 30;
+                    }
+                }
+                
+                // Controle do centro
+                const centerDistance = Math.abs(move.moveData.col - 3.5);
+                score += (4 - centerDistance) * 5;
+                
+                // Evitar bordas laterais (vulneráveis)
+                if (move.moveData.col === 0 || move.moveData.col === 7) {
+                    score -= 10;
+                }
+                
+                return score;
+            }
+            
+            evaluateMoveExpert(move) {
+                let score = 0;
+                const piece = this.board[move.fromRow][move.fromCol];
+                
+                // 1. PROMOÇÃO A DAMA (prioridade máxima)
+                if (!piece.isKing && move.moveData.row === 7) {
+                    score += 100; // Vencer vale muito!
+                } else if (!piece.isKing && move.moveData.row >= 6) {
+                    score += 50; // Muito perto de dama
+                } else if (!piece.isKing && move.moveData.row >= 5) {
+                    score += 25; // Avanço significativo
+                }
+                
+                // 2. CONTROLE TERRITORIAL AVANÇADO
+                score += this.evaluateTerritorialControl(move);
+                
+                // 3. SEGURANÇA DA PEÇA
+                score += this.evaluateSafety(move);
+                
+                // 4. PRESSÃO SOBRE O ADVERSÁRIO
+                score += this.evaluatePressure(move);
+                
+                // 5. FORMAÇÃO E ESTRUTURA
+                score += this.evaluateFormation(move);
+                
+                // 6. MOBILIDADE FUTURA
+                score += this.evaluateMobility(move);
+                
+                return score;
+            }
+            
+            evaluateTerritorialControl(move) {
+                let score = 0;
+                
+                // Centro é muito valioso
+                const centerDistance = Math.abs(move.moveData.col - 3.5) + Math.abs(move.moveData.row - 3.5);
+                score += (8 - centerDistance) * 4;
+                
+                // Controlar as diagonais principais
+                if ((move.moveData.row + move.moveData.col) % 2 === 1) {
+                    score += 10;
+                }
+                
+                // Avançar é sempre bom
+                const advancement = move.moveData.row - move.fromRow;
+                score += advancement * 15;
+                
+                return score;
+            }
+            
+            evaluateSafety(move) {
+                let score = 0;
+                
+                // Verificar se a nova posição é segura
+                if (this.isPositionSafe(move.moveData.row, move.moveData.col, 'black')) {
+                    score += 20;
+                } else {
+                    score -= 30; // Penalizar posições perigosas
+                }
+                
+                // Posições nas bordas laterais são mais seguras
+                if (move.moveData.col === 0 || move.moveData.col === 7) {
+                    score += 15;
+                }
+                
+                // Evitar ficar isolado
+                if (this.countNearbyAllies(move.moveData.row, move.moveData.col, 'black') >= 1) {
+                    score += 10;
+                } else {
+                    score -= 5;
+                }
+                
+                return score;
+            }
+            
+            evaluatePressure(move) {
+                let score = 0;
+                
+                // Quantas peças inimigas esta posição pode atacar no futuro?
+                const threatenedEnemies = this.countThreatenedEnemies(move.moveData.row, move.moveData.col, 'black');
+                score += threatenedEnemies * 8;
+                
+                // Forçar o oponente a se defender
+                if (this.createsThreat(move)) {
+                    score += 12;
+                }
+                
+                return score;
+            }
+            
+            evaluateFormation(move) {
+                let score = 0;
+                
+                // Manter peças conectadas (não muito espalhadas)
+                const allyCount = this.countNearbyAllies(move.moveData.row, move.moveData.col, 'black');
+                if (allyCount === 1 || allyCount === 2) {
+                    score += 8; // Formação ideal
+                } else if (allyCount === 0) {
+                    score -= 5; // Evitar isolamento
+                }
+                
+                // Formar "chains" ofensivas
+                if (this.formsChain(move)) {
+                    score += 15;
+                }
+                
+                return score;
+            }
+            
+            evaluateMobility(move) {
+                let score = 0;
+                
+                // Contar quantos movimentos futuros terá
+                const futureMoves = this.countFutureMoves(move);
+                score += futureMoves * 3;
+                
+                // Damas têm mobilidade muito superior
+                const piece = this.board[move.fromRow][move.fromCol];
+                if (piece.isKing) {
+                    score += 20; // Damas são muito valiosas
+                }
+                
+                return score;
+            }
+            
+            // Funções auxiliares para IA Expert
+            countNearbyAllies(row, col, color) {
+                let count = 0;
+                for (let i = -1; i <= 1; i++) {
+                    for (let j = -1; j <= 1; j++) {
+                        if (i === 0 && j === 0) continue;
+                        const newRow = row + i;
+                        const newCol = col + j;
+                        if (this.isValidPosition(newRow, newCol) && 
+                            this.board[newRow][newCol] && 
+                            this.board[newRow][newCol].color === color) {
+                            count++;
                         }
-                        
-                        this.makeMove(
-                            selectedMove.fromRow,
-                            selectedMove.fromCol,
-                            selectedMove.moveData.row,
-                            selectedMove.moveData.col,
-                            selectedMove.moveData
-                        );
+                    }
+                }
+                return count;
+            }
+            
+            countThreatenedEnemies(row, col, color) {
+                let count = 0;
+                const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+                
+                directions.forEach(([deltaRow, deltaCol]) => {
+                    const enemyRow = row + deltaRow;
+                    const enemyCol = col + deltaCol;
+                    const jumpRow = row + (deltaRow * 2);
+                    const jumpCol = col + (deltaCol * 2);
+                    
+                    if (this.isValidPosition(enemyRow, enemyCol) && 
+                        this.isValidPosition(jumpRow, jumpCol) &&
+                        this.board[enemyRow][enemyCol] && 
+                        this.board[enemyRow][enemyCol].color !== color &&
+                        !this.board[jumpRow][jumpCol]) {
+                        count++;
+                    }
+                });
+                
+                return count;
+            }
+            
+            createsThreat(move) {
+                return this.countThreatenedEnemies(move.moveData.row, move.moveData.col, 'black') > 0;
+            }
+            
+            formsChain(move) {
+                // Verifica se forma uma sequência diagonal com outras peças
+                const directions = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+                
+                for (let [deltaRow, deltaCol] of directions) {
+                    const ally1Row = move.moveData.row + deltaRow;
+                    const ally1Col = move.moveData.col + deltaCol;
+                    const ally2Row = move.moveData.row - deltaRow;
+                    const ally2Col = move.moveData.col - deltaCol;
+                    
+                    if (this.isValidPosition(ally1Row, ally1Col) && 
+                        this.isValidPosition(ally2Row, ally2Col) &&
+                        this.board[ally1Row][ally1Col] && 
+                        this.board[ally1Row][ally1Col].color === 'black' &&
+                        this.board[ally2Row][ally2Col] && 
+                        this.board[ally2Row][ally2Col].color === 'black') {
+                        return true;
+                    }
+                }
+                
+                return false;
+            }
+            
+            countFutureMoves(move) {
+                // Simular quantos movimentos a peça terá na nova posição
+                const piece = this.board[move.fromRow][move.fromCol];
+                let count = 0;
+                
+                const directions = piece.isKing 
+                    ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+                    : [[1, -1], [1, 1]]; // Peças normais só para frente
+                
+                directions.forEach(([deltaRow, deltaCol]) => {
+                    const newRow = move.moveData.row + deltaRow;
+                    const newCol = move.moveData.col + deltaCol;
+                    
+                    if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                        count++;
+                    }
+                });
+                
+                return count;
+            }
+            
+            getStrategicMove(allMoves) {
+                // Estratégias básicas:
+                // 1. Avançar peças para virar dama
+                // 2. Proteger peças importantes
+                // 3. Controlar centro
+                
+                let bestMoves = [];
+                let bestScore = -999;
+                
+                allMoves.forEach(move => {
+                    let score = 0;
+                    
+                    // Pontos por avançar (especialmente perto de virar dama)
+                    if (move.moveData.row < 2) {
+                        score += 15; // Muito perto de virar dama
+                    } else if (move.moveData.row < 4) {
+                        score += 8; // Avançando
                     }
                     
-                    this.isComputerThinking = false;
-                }, 1500);
+                    // Pontos por controlar centro
+                    const centerDistance = Math.abs(move.moveData.col - 3.5);
+                    score += (4 - centerDistance) * 2;
+                    
+                    // Pontos por posições seguras (próximo às bordas)
+                    if (move.moveData.col === 0 || move.moveData.col === 7) {
+                        score += 5;
+                    }
+                    
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMoves = [move];
+                    } else if (score === bestScore) {
+                        bestMoves.push(move);
+                    }
+                });
+                
+                return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            }
+            
+            getBestStrategicMove(allMoves) {
+                // IA Difícil - análise mais profunda
+                let bestMoves = [];
+                let bestScore = -999;
+                
+                allMoves.forEach(move => {
+                    let score = this.evaluatePosition(move);
+                    
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMoves = [move];
+                    } else if (score === bestScore) {
+                        bestMoves.push(move);
+                    }
+                });
+                
+                return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+            }
+            
+            evaluatePosition(move) {
+                let score = 0;
+                
+                // Análise avançada da posição
+                const piece = this.board[move.fromRow][move.fromCol];
+                
+                // Valor da promoção
+                if (!piece.isKing && move.moveData.row === 0) {
+                    score += 50; // Virar dama é muito valioso
+                } else if (!piece.isKing && move.moveData.row < 2) {
+                    score += 20; // Perto de virar dama
+                }
+                
+                // Controle do centro
+                const centerDistance = Math.abs(move.moveData.col - 3.5) + Math.abs(move.moveData.row - 3.5);
+                score += (8 - centerDistance) * 3;
+                
+                // Segurança (evitar capturas no próximo movimento)
+                if (this.isPositionSafe(move.moveData.row, move.moveData.col, 'black')) {
+                    score += 10;
+                } else {
+                    score -= 20;
+                }
+                
+                // Mobilidade (quantos movimentos possíveis após este movimento)
+                score += this.getMobilityScore(move) * 2;
+                
+                return score;
+            }
+            
+            simulateAdditionalCaptures(capture) {
+                // Simular quantas capturas adicionais serão possíveis
+                const tempBoard = this.board.map(row => [...row]);
+                
+                // Aplicar captura temporariamente
+                const piece = tempBoard[capture.fromRow][capture.fromCol];
+                tempBoard[capture.moveData.row][capture.moveData.col] = piece;
+                tempBoard[capture.fromRow][capture.fromCol] = null;
+                tempBoard[capture.moveData.capturedRow][capture.moveData.capturedCol] = null;
+                
+                // Contar capturas adicionais possíveis
+                let additionalCaptures = 0;
+                const captureDirections = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+                
+                captureDirections.forEach(([deltaRow, deltaCol]) => {
+                    const jumpRow = capture.moveData.row + deltaRow;
+                    const jumpCol = capture.moveData.col + deltaCol;
+                    const landRow = capture.moveData.row + (deltaRow * 2);
+                    const landCol = capture.moveData.col + (deltaCol * 2);
+                    
+                    if (this.isValidPosition(jumpRow, jumpCol) && 
+                        this.isValidPosition(landRow, landCol) &&
+                        tempBoard[jumpRow][jumpCol] && 
+                        tempBoard[jumpRow][jumpCol].color === 'red' &&
+                        !tempBoard[landRow][landCol]) {
+                        additionalCaptures++;
+                    }
+                });
+                
+                return additionalCaptures;
+            }
+            
+            isPositionSafe(row, col, color) {
+                // Verificar se posição está segura de capturas
+                const captureDirections = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+                
+                for (let [deltaRow, deltaCol] of captureDirections) {
+                    const threatRow = row - deltaRow;
+                    const threatCol = col - deltaCol;
+                    const escapeRow = row + deltaRow;
+                    const escapeCol = col + deltaCol;
+                    
+                    if (this.isValidPosition(threatRow, threatCol) && 
+                        this.isValidPosition(escapeRow, escapeCol) &&
+                        this.board[threatRow][threatCol] && 
+                        this.board[threatRow][threatCol].color !== color &&
+                        !this.board[escapeRow][escapeCol]) {
+                        return false; // Posição não é segura
+                    }
+                }
+                
+                return true;
+            }
+            
+            getMobilityScore(move) {
+                // Contar quantos movimentos serão possíveis após este movimento
+                const piece = this.board[move.fromRow][move.fromCol];
+                const directions = piece.isKing 
+                    ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+                    : [[1, -1], [1, 1]]; // IA sempre move para baixo
+                
+                let mobilityCount = 0;
+                
+                directions.forEach(([deltaRow, deltaCol]) => {
+                    const newRow = move.moveData.row + deltaRow;
+                    const newCol = move.moveData.col + deltaCol;
+                    
+                    if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                        mobilityCount++;
+                    }
+                });
+                
+                return mobilityCount;
             }
             
             getAllPossibleMoves(color) {
@@ -467,6 +1233,12 @@
                             });
                         }
                     }
+                }
+                
+                // Se há capturas disponíveis, retornar APENAS as capturas
+                const captures = allMoves.filter(move => move.moveData.type === 'capture');
+                if (captures.length > 0) {
+                    return captures;
                 }
                 
                 return allMoves;
@@ -584,7 +1356,17 @@
                         hard: '🔥 DIFÍCIL'
                     };
                     
-                    document.getElementById('difficulty-btn').textContent = difficultyTexts[this.difficulty];
+                    const difficultyColors = {
+                        easy: 'bg-green-500 hover:bg-green-600',
+                        medium: 'bg-green-700 hover:bg-green-800',
+                        hard: 'bg-green-900 hover:bg-green-950'
+                    };
+                    
+                    const btn = document.getElementById('difficulty-btn');
+                    btn.textContent = difficultyTexts[this.difficulty];
+                    
+                    // Remover classes antigas e adicionar novas
+                    btn.className = `text-white px-4 py-2 rounded-lg font-bold transition-colors flex-1 ${difficultyColors[this.difficulty]}`;
                 });
                 
                 // Modal de regras
@@ -627,10 +1409,29 @@
                 
                 this.initializeBoard();
                 this.updateDisplay();
+                this.updateDifficultyButton(); // Atualizar cor do botão
                 
                 // Fechar modais
                 document.getElementById('game-over-modal').classList.add('hidden');
                 document.getElementById('rules-modal').classList.add('hidden');
+            }
+            
+            updateDifficultyButton() {
+                const difficultyTexts = {
+                    easy: '😊 FÁCIL',
+                    medium: '🤔 MÉDIO',
+                    hard: '🔥 DIFÍCIL'
+                };
+                
+                const difficultyColors = {
+                    easy: 'bg-green-500 hover:bg-green-600',
+                    medium: 'bg-green-700 hover:bg-green-800',
+                    hard: 'bg-green-900 hover:bg-green-950'
+                };
+                
+                const btn = document.getElementById('difficulty-btn');
+                btn.textContent = difficultyTexts[this.difficulty];
+                btn.className = `text-white px-4 py-2 rounded-lg font-bold transition-colors flex-1 ${difficultyColors[this.difficulty]}`;
             }
         }
         
