@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏁 Damas - GameHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .board-square {
+            aspect-ratio: 1;
+            transition: all 0.2s ease;
+        }
+        
+        .piece {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            border: 3px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .piece:hover {
+            transform: scale(1.1);
+        }
+        
+        .red-piece {
+            background: linear-gradient(145deg, #dc2626, #b91c1c);
+            border-color: #7f1d1d;
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.4);
+        }
+        
+        .black-piece {
+            background: linear-gradient(145deg, #374151, #1f2937);
+            border-color: #111827;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        .king {
+            font-size: 16px;
+            color: #fbbf24;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
+        
+        .selected {
+            ring: 4px;
+            ring-color: #3b82f6;
+            transform: scale(1.1);
+        }
+        
+        .valid-move {
+            background: rgba(34, 197, 94, 0.3);
+            border: 2px solid #22c55e;
+        }
+        
+        .capture-move {
+            background: rgba(239, 68, 68, 0.3);
+            border: 2px solid #ef4444;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f766e 0%, #065f46 100%);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen p-4">
+    <!-- Header Banner Ad -->
+    <div class="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-10 py-2">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="bg-gray-200 text-gray-500 py-2 rounded text-sm">
+                📢 Espaço Publicitário (AdSense)
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col items-center justify-center min-h-screen mt-16">
+        <!-- Header do Jogo -->
+        <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-6 mb-4 w-full max-w-2xl">
+            <div class="text-center mb-4">
+                <h1 class="text-3xl md:text-4xl font-bold text-white mb-2">
+                    🏁 Damas Inteligentes
+                </h1>
+                <p class="text-white/80">Desafie a IA em 3 níveis de dificuldade!</p>
+                
+                <!-- Voltar para menu -->
+                <div class="mt-4">
+                    <a href="../index.html" class="text-cyan-300 hover:text-cyan-100 font-semibold">
+                        ← Voltar ao Menu
+                    </a>
+                </div>
+            </div>
+
+            <!-- Controles -->
+            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                <!-- Modo de Jogo -->
+                <button id="toggle-mode" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex-1">
+                    🤖 vs COMPUTADOR
+                </button>
+                
+                <!-- Dificuldade -->
+                <button id="difficulty-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex-1">
+                    😊 FÁCIL
+                </button>
+                
+                <!-- Regras -->
+                <button id="rules-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex-1">
+                    📖 REGRAS
+                </button>
+            </div>
+
+            <!-- Status -->
+            <div class="flex justify-between items-center bg-black/30 rounded-lg p-3 mb-4">
+                <div class="text-white">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-red-600 rounded-full"></div>
+                        <span>Você: <span id="red-count">12</span></span>
+                    </div>
+                </div>
+                <div id="game-status" class="text-lg font-bold text-white">
+                    Sua vez!
+                </div>
+                <div class="text-white">
+                    <div class="flex items-center gap-2">
+                        <div class="w-4 h-4 bg-gray-800 rounded-full"></div>
+                        <span>IA: <span id="black-count">12</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabuleiro -->
+        <div class="bg-yellow-800 p-4 rounded-2xl shadow-2xl">
+            <div id="board" class="grid grid-cols-8 gap-1">
+                <!-- Casas do tabuleiro serão criadas via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Novo Jogo -->
+        <div class="mt-4">
+            <button id="new-game" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold transition-colors">
+                🔄 Novo Jogo
+            </button>
+        </div>
+
+        <!-- Banner Bottom -->
+        <div class="mt-6 text-center">
+            <div class="bg-gray-200 text-gray-500 py-8 rounded max-w-md">
+                📢 Espaço Publicitário (AdSense)
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Regras -->
+    <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">📖 Como Jogar Damas</h2>
+                <button id="close-rules" class="text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
+            </div>
+            <div class="space-y-3 text-gray-700">
+                <p><strong>🎯 Objetivo:</strong> Capture todas as peças do adversário ou bloqueie seus movimentos.</p>
+                <p><strong>📏 Movimento:</strong> Peças normais movem 1 casa na diagonal para frente.</p>
+                <p><strong>👑 Damas:</strong> Podem mover múltiplas casas em qualquer diagonal.</p>
+                <p><strong>⚔️ Captura:</strong> Pule sobre peça inimiga. Capturas são obrigatórias!</p>
+                <p><strong>🔄 Capturas múltiplas:</strong> Continue capturando com a mesma peça se possível.</p>
+                <p><strong>👑 Promoção:</strong> Peça vira dama ao chegar na última linha adversária.</p>
+                <p><strong>🏆 Vitória:</strong> Elimine todas as peças inimigas ou as bloqueie.</p>
+            </div>
+            <button id="close-rules-btn" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg">
+                ✅ Entendi!
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Game Over -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full text-center">
+            <div id="game-result" class="text-2xl font-bold mb-4"></div>
+            <div class="mb-4">
+                <div class="bg-gray-200 text-gray-500 rounded flex items-center justify-center" style="width:300px; height:250px; margin:0 auto;">
+                    📢 Anúncio
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="play-again" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                    🔄 Jogar Novamente
+                </button>
+                <button id="back-menu" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                    🏠 Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CheckersGame {
+            constructor() {
+                this.BOARD_SIZE = 8;
+                this.board = [];
+                this.currentPlayer = 'red';
+                this.selectedPiece = null;
+                this.validMoves = [];
+                this.gameOver = false;
+                this.winner = null;
+                this.redPieces = 12;
+                this.blackPieces = 12;
+                this.mustCapture = false;
+                this.vsComputer = true;
+                this.difficulty = 'easy';
+                this.isComputerThinking = false;
+                
+                this.init();
+            }
+            
+            init() {
+                this.initializeBoard();
+                this.createBoardHTML();
+                this.attachEventListeners();
+                this.updateDisplay();
+            }
+            
+            initializeBoard() {
+                this.board = Array(this.BOARD_SIZE).fill(null).map(() => Array(this.BOARD_SIZE).fill(null));
+                
+                // Peças pretas (topo) - IA
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        if ((row + col) % 2 === 1) {
+                            this.board[row][col] = { color: 'black', isKing: false };
+                        }
+                    }
+                }
+                
+                // Peças vermelhas (fundo) - Jogador
+                for (let row = 5; row < this.BOARD_SIZE; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        if ((row + col) % 2 === 1) {
+                            this.board[row][col] = { color: 'red', isKing: false };
+                        }
+                    }
+                }
+            }
+            
+            createBoardHTML() {
+                const boardElement = document.getElementById('board');
+                boardElement.innerHTML = '';
+                
+                for (let row = 0; row < this.BOARD_SIZE; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        const square = document.createElement('div');
+                        square.classList.add('board-square', 'w-12', 'h-12', 'md:w-16', 'md:h-16', 'flex', 'items-center', 'justify-center', 'cursor-pointer');
+                        
+                        if ((row + col) % 2 === 0) {
+                            square.classList.add('bg-yellow-200');
+                        } else {
+                            square.classList.add('bg-yellow-700');
+                        }
+                        
+                        square.dataset.row = row;
+                        square.dataset.col = col;
+                        square.addEventListener('click', () => this.handleSquareClick(row, col));
+                        
+                        const piece = this.board[row][col];
+                        if (piece) {
+                            square.appendChild(this.createPieceElement(piece));
+                        }
+                        
+                        boardElement.appendChild(square);
+                    }
+                }
+            }
+            
+            createPieceElement(piece) {
+                const pieceElement = document.createElement('div');
+                pieceElement.classList.add('piece');
+                
+                if (piece.color === 'red') {
+                    pieceElement.classList.add('red-piece');
+                } else {
+                    pieceElement.classList.add('black-piece');
+                }
+                
+                if (piece.isKing) {
+                    pieceElement.innerHTML = '<span class="king">♔</span>';
+                    pieceElement.classList.add('king');
+                }
+                
+                return pieceElement;
+            }
+            
+            handleSquareClick(row, col) {
+                if (this.gameOver || this.isComputerThinking) return;
+                if (this.vsComputer && this.currentPlayer === 'black') return;
+                
+                const piece = this.board[row][col];
+                
+                if (this.selectedPiece) {
+                    const { row: selectedRow, col: selectedCol } = this.selectedPiece;
+                    const validMove = this.validMoves.find(move => move.row === row && move.col === col);
+                    
+                    if (validMove) {
+                        this.makeMove(selectedRow, selectedCol, row, col, validMove);
+                    } else if (piece && piece.color === this.currentPlayer) {
+                        this.selectPiece(row, col);
+                    } else {
+                        this.deselectPiece();
+                    }
+                } else if (piece && piece.color === this.currentPlayer) {
+                    this.selectPiece(row, col);
+                }
+            }
+            
+            selectPiece(row, col) {
+                this.selectedPiece = { row, col };
+                this.validMoves = this.getPossibleMoves(row, col);
+                this.updateBoardDisplay();
+            }
+            
+            deselectPiece() {
+                this.selectedPiece = null;
+                this.validMoves = [];
+                this.updateBoardDisplay();
+            }
+            
+            getPossibleMoves(row, col) {
+                const piece = this.board[row][col];
+                if (!piece) return [];
+                
+                const moves = [];
+                const directions = piece.isKing 
+                    ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+                    : piece.color === 'red' 
+                        ? [[-1, -1], [-1, 1]]
+                        : [[1, -1], [1, 1]];
+                
+                // Movimentos normais
+                directions.forEach(([deltaRow, deltaCol]) => {
+                    const newRow = row + deltaRow;
+                    const newCol = col + deltaCol;
+                    
+                    if (this.isValidPosition(newRow, newCol) && !this.board[newRow][newCol]) {
+                        moves.push({ row: newRow, col: newCol, type: 'move' });
+                    }
+                });
+                
+                // Capturas (todas as direções para peças normais também)
+                const captureDirections = [[-1, -1], [-1, 1], [1, -1], [1, 1]];
+                captureDirections.forEach(([deltaRow, deltaCol]) => {
+                    const jumpRow = row + deltaRow;
+                    const jumpCol = col + deltaCol;
+                    const landRow = row + (deltaRow * 2);
+                    const landCol = col + (deltaCol * 2);
+                    
+                    if (this.isValidPosition(jumpRow, jumpCol) && 
+                        this.isValidPosition(landRow, landCol) &&
+                        this.board[jumpRow][jumpCol] && 
+                        this.board[jumpRow][jumpCol].color !== piece.color &&
+                        !this.board[landRow][landCol]) {
+                        moves.push({ 
+                            row: landRow, 
+                            col: landCol, 
+                            type: 'capture',
+                            capturedRow: jumpRow,
+                            capturedCol: jumpCol
+                        });
+                    }
+                });
+                
+                return moves;
+            }
+            
+            isValidPosition(row, col) {
+                return row >= 0 && row < this.BOARD_SIZE && col >= 0 && col < this.BOARD_SIZE;
+            }
+            
+            makeMove(fromRow, fromCol, toRow, toCol, moveData) {
+                const piece = this.board[fromRow][fromCol];
+                this.board[toRow][toCol] = piece;
+                this.board[fromRow][fromCol] = null;
+                
+                if (moveData.type === 'capture') {
+                    this.board[moveData.capturedRow][moveData.capturedCol] = null;
+                    if (piece.color === 'red') {
+                        this.blackPieces--;
+                    } else {
+                        this.redPieces--;
+                    }
+                }
+                
+                // Promover a dama
+                if (!piece.isKing) {
+                    if ((piece.color === 'red' && toRow === 0) || 
+                        (piece.color === 'black' && toRow === 7)) {
+                        piece.isKing = true;
+                    }
+                }
+                
+                this.deselectPiece();
+                this.checkGameOver();
+                
+                if (!this.gameOver) {
+                    this.currentPlayer = this.currentPlayer === 'red' ? 'black' : 'red';
+                    this.updateDisplay();
+                    
+                    if (this.vsComputer && this.currentPlayer === 'black') {
+                        this.makeComputerMove();
+                    }
+                }
+            }
+            
+            makeComputerMove() {
+                if (this.isComputerThinking) return;
+                
+                this.isComputerThinking = true;
+                document.getElementById('game-status').textContent = 'IA pensando...';
+                
+                setTimeout(() => {
+                    const moves = this.getAllPossibleMoves('black');
+                    
+                    if (moves.length > 0) {
+                        let selectedMove;
+                        
+                        if (this.difficulty === 'easy' && Math.random() < 0.4) {
+                            // Movimento aleatório 40% do tempo
+                            selectedMove = moves[Math.floor(Math.random() * moves.length)];
+                        } else {
+                            // Priorizar capturas
+                            const captures = moves.filter(m => m.moveData.type === 'capture');
+                            selectedMove = captures.length > 0 
+                                ? captures[Math.floor(Math.random() * captures.length)]
+                                : moves[Math.floor(Math.random() * moves.length)];
+                        }
+                        
+                        this.makeMove(
+                            selectedMove.fromRow,
+                            selectedMove.fromCol,
+                            selectedMove.moveData.row,
+                            selectedMove.moveData.col,
+                            selectedMove.moveData
+                        );
+                    }
+                    
+                    this.isComputerThinking = false;
+                }, 1500);
+            }
+            
+            getAllPossibleMoves(color) {
+                const allMoves = [];
+                
+                for (let row = 0; row < this.BOARD_SIZE; row++) {
+                    for (let col = 0; col < this.BOARD_SIZE; col++) {
+                        const piece = this.board[row][col];
+                        if (piece && piece.color === color) {
+                            const moves = this.getPossibleMoves(row, col);
+                            moves.forEach(moveData => {
+                                allMoves.push({ fromRow: row, fromCol: col, moveData });
+                            });
+                        }
+                    }
+                }
+                
+                return allMoves;
+            }
+            
+            checkGameOver() {
+                if (this.redPieces === 0) {
+                    this.endGame('black');
+                } else if (this.blackPieces === 0) {
+                    this.endGame('red');
+                } else {
+                    // Verificar se jogador atual tem movimentos
+                    const moves = this.getAllPossibleMoves(this.currentPlayer);
+                    if (moves.length === 0) {
+                        this.endGame(this.currentPlayer === 'red' ? 'black' : 'red');
+                    }
+                }
+            }
+            
+            endGame(winner) {
+                this.gameOver = true;
+                this.winner = winner;
+                
+                setTimeout(() => {
+                    const modal = document.getElementById('game-over-modal');
+                    const result = document.getElementById('game-result');
+                    
+                    if (winner === 'red') {
+                        result.textContent = '🎉 Você Venceu!';
+                        result.className = 'text-2xl font-bold mb-4 text-green-600';
+                    } else {
+                        result.textContent = '🤖 IA Venceu!';
+                        result.className = 'text-2xl font-bold mb-4 text-red-600';
+                    }
+                    
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }, 1000);
+            }
+            
+            updateBoardDisplay() {
+                const squares = document.querySelectorAll('[data-row][data-col]');
+                
+                squares.forEach(square => {
+                    const row = parseInt(square.dataset.row);
+                    const col = parseInt(square.dataset.col);
+                    
+                    // Remover classes anteriores
+                    square.classList.remove('valid-move', 'capture-move');
+                    
+                    // Destacar movimentos válidos
+                    const validMove = this.validMoves.find(move => move.row === row && move.col === col);
+                    if (validMove) {
+                        if (validMove.type === 'capture') {
+                            square.classList.add('capture-move');
+                        } else {
+                            square.classList.add('valid-move');
+                        }
+                    }
+                    
+                    // Atualizar peças
+                    const piece = this.board[row][col];
+                    square.innerHTML = '';
+                    
+                    if (piece) {
+                        const pieceElement = this.createPieceElement(piece);
+                        
+                        // Destacar peça selecionada
+                        if (this.selectedPiece && 
+                            this.selectedPiece.row === row && 
+                            this.selectedPiece.col === col) {
+                            pieceElement.classList.add('selected');
+                        }
+                        
+                        square.appendChild(pieceElement);
+                    }
+                });
+            }
+            
+            updateDisplay() {
+                document.getElementById('red-count').textContent = this.redPieces;
+                document.getElementById('black-count').textContent = this.blackPieces;
+                
+                if (!this.gameOver) {
+                    const status = this.currentPlayer === 'red' ? 'Sua vez!' : 'Vez da IA';
+                    document.getElementById('game-status').textContent = status;
+                }
+                
+                this.createBoardHTML();
+            }
+            
+            attachEventListeners() {
+                // Novo Jogo
+                document.getElementById('new-game').addEventListener('click', () => {
+                    this.resetGame();
+                });
+                
+                // Alternar modo
+                document.getElementById('toggle-mode').addEventListener('click', () => {
+                    this.vsComputer = !this.vsComputer;
+                    document.getElementById('toggle-mode').textContent = 
+                        this.vsComputer ? '🤖 vs COMPUTADOR' : '👥 vs HUMANO';
+                    this.resetGame();
+                });
+                
+                // Alternar dificuldade
+                document.getElementById('difficulty-btn').addEventListener('click', () => {
+                    const difficulties = ['easy', 'medium', 'hard'];
+                    const currentIndex = difficulties.indexOf(this.difficulty);
+                    this.difficulty = difficulties[(currentIndex + 1) % difficulties.length];
+                    
+                    const difficultyTexts = {
+                        easy: '😊 FÁCIL',
+                        medium: '🤔 MÉDIO',
+                        hard: '🔥 DIFÍCIL'
+                    };
+                    
+                    document.getElementById('difficulty-btn').textContent = difficultyTexts[this.difficulty];
+                });
+                
+                // Modal de regras
+                document.getElementById('rules-btn').addEventListener('click', () => {
+                    document.getElementById('rules-modal').classList.remove('hidden');
+                    document.getElementById('rules-modal').classList.add('flex');
+                });
+                
+                document.getElementById('close-rules').addEventListener('click', () => {
+                    document.getElementById('rules-modal').classList.add('hidden');
+                    document.getElementById('rules-modal').classList.remove('flex');
+                });
+                
+                document.getElementById('close-rules-btn').addEventListener('click', () => {
+                    document.getElementById('rules-modal').classList.add('hidden');
+                    document.getElementById('rules-modal').classList.remove('flex');
+                });
+                
+                // Modal game over
+                document.getElementById('play-again').addEventListener('click', () => {
+                    document.getElementById('game-over-modal').classList.add('hidden');
+                    document.getElementById('game-over-modal').classList.remove('flex');
+                    this.resetGame();
+                });
+                
+                document.getElementById('back-menu').addEventListener('click', () => {
+                    window.location.href = '../index.html';
+                });
+            }
+            
+            resetGame() {
+                this.gameOver = false;
+                this.winner = null;
+                this.currentPlayer = 'red';
+                this.selectedPiece = null;
+                this.validMoves = [];
+                this.redPieces = 12;
+                this.blackPieces = 12;
+                this.isComputerThinking = false;
+                
+                this.initializeBoard();
+                this.updateDisplay();
+                
+                // Fechar modais
+                document.getElementById('game-over-modal').classList.add('hidden');
+                document.getElementById('rules-modal').classList.add('hidden');
+            }
+        }
+        
+        // Inicializar jogo
+        document.addEventListener('DOMContentLoaded', () => {
+            new CheckersGame();
+        });
+    </script>
+</body>
+</html>
