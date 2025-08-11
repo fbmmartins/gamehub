@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⭕ Jogo da Velha - GameHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .cell {
+            transition: all 0.3s ease;
+        }
+        
+        .cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .winning-line {
+            background: linear-gradient(45deg, #10b981, #06d6a0);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .bounce-in {
+            animation: bounceIn 0.5s ease-out;
+        }
+        
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <!-- Banner Top Placeholder -->
+    <div class="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-sm z-10 py-2">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="bg-gray-200 text-gray-500 py-2 rounded text-sm">
+                📢 Espaço Publicitário (AdSense)
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-2xl p-6 md:p-8 w-full max-w-md mt-20">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                ⭕ Jogo da Velha
+            </h1>
+            <p class="text-gray-600">Contra IA Inteligente</p>
+            
+            <!-- Voltar para menu -->
+            <div class="mt-4">
+                <a href="../index.html" class="text-blue-600 hover:text-blue-800 font-semibold">
+                    ← Voltar ao Menu
+                </a>
+            </div>
+        </div>
+
+        <!-- Placar -->
+        <div class="flex justify-between items-center mb-6 bg-gray-100 rounded-lg p-4">
+            <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600" id="player-score">0</div>
+                <div class="text-sm text-gray-600">Você (X)</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg text-gray-500" id="ties">0</div>
+                <div class="text-xs text-gray-500">Empates</div>
+            </div>
+            <div class="text-center">
+                <div class="text-2xl font-bold text-red-600" id="ai-score">0</div>
+                <div class="text-sm text-gray-600">IA (O)</div>
+            </div>
+        </div>
+
+        <!-- Status do Jogo -->
+        <div class="text-center mb-4">
+            <div id="game-status" class="text-lg font-semibold text-gray-700 bg-blue-100 rounded-lg py-2 px-4">
+                Sua vez! Escolha uma casa.
+            </div>
+        </div>
+
+        <!-- Tabuleiro -->
+        <div class="grid grid-cols-3 gap-2 mb-6" id="board">
+            <!-- Células serão criadas via JavaScript -->
+        </div>
+
+        <!-- Controles -->
+        <div class="flex flex-col gap-3">
+            <!-- Dificuldade -->
+            <div class="flex justify-center">
+                <select id="difficulty" class="bg-gray-100 border border-gray-300 rounded-lg px-4 py-2 font-semibold">
+                    <option value="easy">😊 Fácil</option>
+                    <option value="medium" selected>🤔 Médio</option>
+                    <option value="hard">🔥 Difícil</option>
+                </select>
+            </div>
+            
+            <!-- Botões -->
+            <div class="flex gap-2">
+                <button id="reset-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                    🔄 Novo Jogo
+                </button>
+                <button id="rules-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                    📖 Regras
+                </button>
+            </div>
+        </div>
+
+        <!-- Banner Bottom Placeholder -->
+        <div class="mt-6 text-center">
+            <div class="bg-gray-200 text-gray-500 py-8 rounded">
+                📢 Espaço Publicitário (AdSense)
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Regras -->
+    <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-20 p-4">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">📖 Como Jogar</h2>
+                <button id="close-rules" class="text-gray-600 hover:text-gray-800 text-xl font-bold">✕</button>
+            </div>
+            <div class="space-y-3 text-gray-700">
+                <p><strong>🎯 Objetivo:</strong> Formar uma linha com 3 símbolos iguais</p>
+                <p><strong>📏 Linhas válidas:</strong> Horizontal, vertical ou diagonal</p>
+                <p><strong>🎮 Como jogar:</strong> Clique em uma casa vazia</p>
+                <p><strong>🤖 IA:</strong> Três níveis de dificuldade</p>
+                <p><strong>🏆 Vitória:</strong> Primeiro a fazer uma linha vence!</p>
+            </div>
+            <button id="close-rules-btn" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg">
+                ✅ Entendi!
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Game Over -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-20 p-4">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full text-center">
+            <div id="game-result" class="text-2xl font-bold mb-4"></div>
+            <div class="mb-4">
+                <div class="bg-gray-200 text-gray-500 rounded flex items-center justify-center" style="width:300px; height:250px; margin:0 auto;">
+                    📢 Anúncio
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="play-again" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                    🔄 Jogar Novamente
+                </button>
+                <button id="back-to-menu" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition">
+                    🏠 Menu Principal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        class TicTacToe {
+            constructor() {
+                this.board = Array(9).fill('');
+                this.currentPlayer = 'X';
+                this.gameActive = true;
+                this.difficulty = 'medium';
+                this.scores = {
+                    player: parseInt(localStorage.getItem('ttt-player-score') || '0'),
+                    ai: parseInt(localStorage.getItem('ttt-ai-score') || '0'),
+                    ties: parseInt(localStorage.getItem('ttt-ties') || '0')
+                };
+                
+                this.winningConditions = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8], // linhas
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8], // colunas
+                    [0, 4, 8], [2, 4, 6] // diagonais
+                ];
+                
+                this.init();
+            }
+
+            init() {
+                this.createBoard();
+                this.updateScores();
+                this.attachEventListeners();
+                this.updateStatus("Sua vez! Escolha uma casa.");
+                
+                console.log('Jogo da Velha carregado com sucesso!');
+            }
+
+            createBoard() {
+                const boardElement = document.getElementById('board');
+                boardElement.innerHTML = '';
+                
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add(
+                        'cell', 'aspect-square', 'bg-gray-100', 'rounded-lg', 
+                        'flex', 'items-center', 'justify-center', 'text-4xl', 
+                        'font-bold', 'cursor-pointer', 'hover:bg-gray-200'
+                    );
+                    cell.setAttribute('data-index', i);
+                    boardElement.appendChild(cell);
+                }
+            }
+
+            attachEventListeners() {
+                document.getElementById('board').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('cell')) {
+                        this.handleCellClick(parseInt(e.target.getAttribute('data-index')));
+                    }
+                });
+
+                document.getElementById('reset-btn').addEventListener('click', () => this.resetGame());
+                document.getElementById('difficulty').addEventListener('change', (e) => {
+                    this.difficulty = e.target.value;
+                    this.resetGame();
+                });
+
+                // Modal de regras
+                document.getElementById('rules-btn').addEventListener('click', () => {
+                    document.getElementById('rules-modal').classList.remove('hidden');
+                    document.getElementById('rules-modal').classList.add('flex');
+                });
+
+                document.getElementById('close-rules').addEventListener('click', () => {
+                    document.getElementById('rules-modal').classList.add('hidden');
+                    document.getElementById('rules-modal').classList.remove('flex');
+                });
+
+                document.getElementById('close-rules-btn').addEventListener('click', () => {
+                    document.getElementById('rules-modal').classList.add('hidden');
+                    document.getElementById('rules-modal').classList.remove('flex');
+                });
+
+                // Modal de game over
+                document.getElementById('play-again').addEventListener('click', () => {
+                    document.getElementById('game-over-modal').classList.add('hidden');
+                    document.getElementById('game-over-modal').classList.remove('flex');
+                    this.resetGame();
+                });
+
+                document.getElementById('back-to-menu').addEventListener('click', () => {
+                    window.location.href = '../index.html';
+                });
+            }
+
+            handleCellClick(index) {
+                if (!this.gameActive || this.board[index] !== '' || this.currentPlayer !== 'X') {
+                    return;
+                }
+
+                this.makeMove(index, 'X');
+                
+                if (this.gameActive) {
+                    setTimeout(() => this.aiMove(), 500);
+                }
+            }
+
+            makeMove(index, player) {
+                this.board[index] = player;
+                const cell = document.querySelector(`[data-index="${index}"]`);
+                
+                if (player === 'X') {
+                    cell.textContent = '❌';
+                    cell.style.color = '#dc2626';
+                } else {
+                    cell.textContent = '⭕';
+                    cell.style.color = '#2563eb';
+                }
+                
+                cell.classList.add('bounce-in');
+                
+                this.checkResult();
+            }
+
+            aiMove() {
+                if (!this.gameActive) return;
+
+                const availableMoves = this.board
+                    .map((cell, index) => cell === '' ? index : null)
+                    .filter(index => index !== null);
+
+                if (availableMoves.length === 0) return;
+
+                let move;
+                
+                switch (this.difficulty) {
+                    case 'easy':
+                        // 70% chance de erro
+                        if (Math.random() < 0.7) {
+                            move = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+                        } else {
+                            move = this.getBestMove();
+                        }
+                        break;
+                    case 'medium':
+                        // 50% chance de jogada ótima
+                        if (Math.random() < 0.5) {
+                            move = this.getBestMove();
+                        } else {
+                            move = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+                        }
+                        break;
+                    case 'hard':
+                        // Sempre jogada ótima
+                        move = this.getBestMove();
+                        break;
+                }
+
+                this.makeMove(move, 'O');
+                this.currentPlayer = 'X';
+                this.updateStatus("Sua vez! Escolha uma casa.");
+            }
+
+            getBestMove() {
+                // Implementação do Minimax
+                let bestScore = -Infinity;
+                let bestMove = 0;
+
+                for (let i = 0; i < 9; i++) {
+                    if (this.board[i] === '') {
+                        this.board[i] = 'O';
+                        let score = this.minimax(this.board, 0, false);
+                        this.board[i] = '';
+                        
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = i;
+                        }
+                    }
+                }
+
+                return bestMove;
+            }
+
+            minimax(board, depth, isMaximizing) {
+                const result = this.checkWinner(board);
+                
+                if (result === 'O') return 10 - depth;
+                if (result === 'X') return depth - 10;
+                if (result === 'tie') return 0;
+
+                if (isMaximizing) {
+                    let bestScore = -Infinity;
+                    for (let i = 0; i < 9; i++) {
+                        if (board[i] === '') {
+                            board[i] = 'O';
+                            let score = this.minimax(board, depth + 1, false);
+                            board[i] = '';
+                            bestScore = Math.max(score, bestScore);
+                        }
+                    }
+                    return bestScore;
+                } else {
+                    let bestScore = Infinity;
+                    for (let i = 0; i < 9; i++) {
+                        if (board[i] === '') {
+                            board[i] = 'X';
+                            let score = this.minimax(board, depth + 1, true);
+                            board[i] = '';
+                            bestScore = Math.min(score, bestScore);
+                        }
+                    }
+                    return bestScore;
+                }
+            }
+
+            checkWinner(board = this.board) {
+                for (let condition of this.winningConditions) {
+                    const [a, b, c] = condition;
+                    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                        return board[a];
+                    }
+                }
+                
+                if (board.every(cell => cell !== '')) {
+                    return 'tie';
+                }
+                
+                return null;
+            }
+
+            checkResult() {
+                const winner = this.checkWinner();
+                
+                if (winner) {
+                    this.gameActive = false;
+                    
+                    // Highlight da linha vencedora
+                    if (winner !== 'tie') {
+                        this.highlightWinningLine(winner);
+                    }
+                    
+                    // Atualizar placar
+                    if (winner === 'X') {
+                        this.scores.player++;
+                        localStorage.setItem('ttt-player-score', this.scores.player.toString());
+                        this.showGameResult('🎉 Você Venceu!', 'text-green-600');
+                    } else if (winner === 'O') {
+                        this.scores.ai++;
+                        localStorage.setItem('ttt-ai-score', this.scores.ai.toString());
+                        this.showGameResult('🤖 IA Venceu!', 'text-red-600');
+                    } else {
+                        this.scores.ties++;
+                        localStorage.setItem('ttt-ties', this.scores.ties.toString());
+                        this.showGameResult('🤝 Empate!', 'text-yellow-600');
+                    }
+                    
+                    this.updateScores();
+                    setTimeout(() => this.showGameOverModal(winner), 1500);
+                } else {
+                    this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                    if (this.currentPlayer === 'O') {
+                        this.updateStatus("🤖 IA pensando...");
+                    } else {
+                        this.updateStatus("Sua vez! Escolha uma casa.");
+                    }
+                }
+            }
+
+            highlightWinningLine(winner) {
+                for (let condition of this.winningConditions) {
+                    const [a, b, c] = condition;
+                    if (this.board[a] === winner && this.board[b] === winner && this.board[c] === winner) {
+                        [a, b, c].forEach(index => {
+                            const cell = document.querySelector(`[data-index="${index}"]`);
+                            cell.classList.add('winning-line');
+                        });
+                        break;
+                    }
+                }
+            }
+
+            showGameResult(message, colorClass) {
+                const statusElement = document.getElementById('game-status');
+                statusElement.textContent = message;
+                statusElement.className = `text-lg font-bold ${colorClass} bg-gray-100 rounded-lg py-2 px-4`;
+            }
+
+            showGameOverModal(winner) {
+                const modal = document.getElementById('game-over-modal');
+                const result = document.getElementById('game-result');
+                
+                if (winner === 'X') {
+                    result.textContent = '🎉 Parabéns! Você Venceu!';
+                    result.className = 'text-2xl font-bold mb-4 text-green-600';
+                } else if (winner === 'O') {
+                    result.textContent = '🤖 IA Venceu desta vez!';
+                    result.className = 'text-2xl font-bold mb-4 text-red-600';
+                } else {
+                    result.textContent = '🤝 Empate! Boa partida!';
+                    result.className = 'text-2xl font-bold mb-4 text-yellow-600';
+                }
+                
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            updateStatus(message) {
+                document.getElementById('game-status').textContent = message;
+            }
+
+            updateScores() {
+                document.getElementById('player-score').textContent = this.scores.player;
+                document.getElementById('ai-score').textContent = this.scores.ai;
+                document.getElementById('ties').textContent = this.scores.ties;
+            }
+
+            resetGame() {
+                this.board = Array(9).fill('');
+                this.currentPlayer = 'X';
+                this.gameActive = true;
+                
+                // Limpar tabuleiro
+                const cells = document.querySelectorAll('.cell');
+                cells.forEach(cell => {
+                    cell.textContent = '';
+                    cell.className = 'cell aspect-square bg-gray-100 rounded-lg flex items-center justify-center text-4xl font-bold cursor-pointer hover:bg-gray-200';
+                });
+                
+                this.updateStatus("Sua vez! Escolha uma casa.");
+                
+                // Fechar modals
+                document.getElementById('game-over-modal').classList.add('hidden');
+                document.getElementById('game-over-modal').classList.remove('flex');
+            }
+        }
+
+        // Inicializar jogo quando página carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            const game = new TicTacToe();
+        });
+    </script>
+</body>
+</html>
