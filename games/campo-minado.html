@@ -86,15 +86,63 @@
             color: #00ff88;
             text-shadow: 0 0 10px #00ff88;
         }
+        
+        /* Responsividade do tabuleiro */
+        .game-board {
+            max-width: 95vw;
+            margin: 0 auto;
+        }
+        
+        .board-container {
+            width: fit-content;
+            margin: 0 auto;
+        }
+        
+        /* Ajustes responsivos automáticos */
+        @media (max-width: 768px) {
+            .board-container {
+                transform-origin: center;
+            }
+            
+            /* Escalas otimizadas para mobile */
+            .board-small {
+                transform: scale(0.95); /* Fácil maior no mobile */
+            }
+            
+            .board-medium {
+                transform: scale(0.85); /* Expert mobile confortável */
+            }
+            
+            .board-large {
+                transform: scale(0.6); /* Expert desktop ainda menor */
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .board-small {
+                transform: scale(0.9);
+            }
+            
+            .board-medium {
+                transform: scale(0.8); /* Expert mobile ainda confortável */
+            }
+            
+            .board-large {
+                transform: scale(0.55);
+            }
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
     <!-- Google AdSense Top Banner -->
     <div class="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-10 py-2">
         <div class="max-w-4xl mx-auto text-center">
-            <div class="bg-gray-200 text-gray-500 py-2 rounded text-sm">
-                📢 Espaço Publicitário (AdSense)
-            </div>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+                 data-ad-slot="XXXXXXXXXX"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
         </div>
     </div>
 
@@ -108,7 +156,7 @@
             
             <!-- Voltar para menu -->
             <div class="mt-4">
-                <a href="../index.html" class="text-cyan-400 hover:text-cyan-300 font-semibold transition">
+                <a href="javascript:history.back()" class="text-cyan-400 hover:text-cyan-300 font-semibold transition">
                     ← Voltar ao Menu Principal
                 </a>
             </div>
@@ -140,14 +188,16 @@
             <select id="difficulty" class="bg-gray-800 text-cyan-300 border border-cyan-600 rounded-lg px-4 py-2 font-semibold">
                 <option value="easy">🟢 Iniciante (9x9, 10 minas)</option>
                 <option value="medium" selected>🟡 Avançado (16x16, 40 minas)</option>
-                <option value="hard">🔴 Expert (16x30, 99 minas)</option>
+                <option value="hard" id="expert-option">🔴 Expert</option>
             </select>
         </div>
 
         <!-- Tabuleiro -->
-        <div class="flex justify-center mb-6">
-            <div id="board" class="grid gap-1 p-4 rounded-lg bg-black/50">
-                <!-- Células criadas via JavaScript -->
+        <div class="game-board flex justify-center mb-6">
+            <div class="board-container">
+                <div id="board" class="grid gap-0.5 md:gap-1 p-2 md:p-4 rounded-lg bg-black/50">
+                    <!-- Células criadas via JavaScript -->
+                </div>
             </div>
         </div>
 
@@ -230,10 +280,15 @@
                 this.timer = null;
                 this.bestTimes = JSON.parse(localStorage.getItem('space-minesweeper-times') || '{"easy": null, "medium": null, "hard": null}');
                 
+                // Detectar se é mobile para ajustar dificuldades
+                const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+                
                 this.difficulties = {
                     easy: { rows: 9, cols: 9, mines: 10, name: "Iniciante" },
                     medium: { rows: 16, cols: 16, mines: 40, name: "Avançado" },
-                    hard: { rows: 16, cols: 30, mines: 99, name: "Expert" }
+                    hard: isMobileDevice 
+                        ? { rows: 12, cols: 16, mines: 35, name: "Expert" } // Mobile: menor e menos minas
+                        : { rows: 16, cols: 22, mines: 65, name: "Expert" } // Desktop: maior
                 };
                 
                 this.init();
@@ -241,9 +296,17 @@
 
             init() {
                 this.attachEventListeners();
+                this.updateExpertOptionText();
                 this.newGame();
                 
-                console.log('Space Minesweeper carregado com sucesso!');
+                // AdSense desabilitado para desenvolvimento
+                console.log('Jogo carregado com sucesso!');
+            }
+
+            updateExpertOptionText() {
+                const expertOption = document.getElementById('expert-option');
+                const diff = this.difficulties.hard;
+                expertOption.textContent = `🔴 Expert (${diff.rows}x${diff.cols}, ${diff.mines} minas)`;
             }
 
             attachEventListeners() {
@@ -273,7 +336,7 @@
                 });
 
                 document.getElementById('back-menu').addEventListener('click', () => {
-                    window.location.href = '../index.html';
+                    window.history.back();
                 });
             }
 
@@ -337,19 +400,59 @@
 
             createBoard() {
                 const boardElement = document.getElementById('board');
+                const boardContainer = document.querySelector('.board-container');
                 
-                // Ajustar tamanho das células baseado na dificuldade
+                // Limpar classes anteriores
+                boardContainer.className = 'board-container';
+                
+                // Detectar tamanho da tela
+                const isMobile = window.innerWidth <= 768;
+                const isSmallMobile = window.innerWidth <= 480;
+                
+                // Determinar tamanho das células e escala baseado na dificuldade
                 let cellSizeClasses = ['w-8', 'h-8'];
-                if (this.cols > 20) cellSizeClasses = ['w-6', 'h-6'];
-                else if (this.cols > 15) cellSizeClasses = ['w-7', 'h-7'];
+                let textSizeClass = 'text-sm';
+                let boardClass = '';
                 
+                if (this.cols <= 9) {
+                    // Fácil - 9x9
+                    cellSizeClasses = isMobile ? ['w-8', 'h-8'] : ['w-10', 'h-10'];
+                    textSizeClass = 'text-sm';
+                    boardClass = 'board-small';
+                } else if (this.cols <= 16 && this.rows <= 12) {
+                    // Expert Mobile - 12x16
+                    cellSizeClasses = isMobile ? ['w-5', 'h-5'] : ['w-6', 'h-6'];
+                    textSizeClass = 'text-xs';
+                    boardClass = 'board-medium';
+                } else if (this.cols <= 16) {
+                    // Médio - 16x16
+                    cellSizeClasses = isMobile ? ['w-4', 'h-4'] : ['w-6', 'h-6'];
+                    textSizeClass = 'text-xs';
+                    boardClass = 'board-medium';
+                } else {
+                    // Expert Desktop - 16x22
+                    cellSizeClasses = isMobile ? ['w-3', 'h-3'] : ['w-5', 'h-5'];
+                    textSizeClass = 'text-xs';
+                    boardClass = 'board-large';
+                }
+                
+                // Aplicar classe responsiva apenas em mobile
+                if (isMobile) {
+                    boardContainer.classList.add(boardClass);
+                }
+                
+                // Configurar grid
                 boardElement.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
                 boardElement.innerHTML = '';
                 
+                // Criar células
                 for (let row = 0; row < this.rows; row++) {
                     for (let col = 0; col < this.cols; col++) {
                         const cell = document.createElement('div');
-                        cell.classList.add('cell', 'flex', 'items-center', 'justify-center', 'text-sm', 'font-bold', 'cursor-pointer', 'rounded');
+                        cell.classList.add(
+                            'cell', 'flex', 'items-center', 'justify-center', 
+                            textSizeClass, 'font-bold', 'cursor-pointer', 'rounded'
+                        );
                         cellSizeClasses.forEach(cls => cell.classList.add(cls));
                         cell.dataset.row = row;
                         cell.dataset.col = col;
@@ -514,6 +617,13 @@
                 
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
+                
+                // Carregar anúncio no modal
+                try {
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                } catch (e) {
+                    console.log('AdSense não carregado no modal');
+                }
             }
 
             updateMineCount() {
