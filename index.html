@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Jogos online grátis para se divertir! Jogo da Velha, Damas, Campo Minado, Snake, 2048 e muito mais!">
+    <meta name="keywords" content="jogos online, jogos grátis, jogo da velha, damas, campo minado, snake, 2048, tetris">
+    <title>🎮 GameHub - Jogos Online Grátis</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .game-card {
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .coming-soon {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .coming-soon::after {
+            content: "Em Breve";
+            position: absolute;
+            top: 10px;
+            right: -30px;
+            background: #fbbf24;
+            color: #1f2937;
+            padding: 4px 40px;
+            font-size: 12px;
+            font-weight: bold;
+            transform: rotate(45deg);
+            box-shadow: 0 2px 10px rgba(251, 191, 36, 0.3);
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from {
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+            }
+            to {
+                box-shadow: 0 0 30px rgba(118, 75, 162, 0.6);
+            }
+        }
+        
+        .stats-counter {
+            background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header Banner Ad -->
+    <div class="bg-gray-100 py-2 text-center">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-gray-200 text-gray-500 py-6 rounded" style="height:90px; line-height:90px;">
+                📢 Espaço Publicitário 728x90
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="gradient-bg text-white">
+        <div class="container mx-auto px-4 py-12">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4">
+                    🎮 <span class="bg-white text-transparent bg-clip-text">GameHub</span>
+                </h1>
+                <p class="text-xl md:text-2xl mb-6 opacity-90">
+                    Seus jogos favoritos em um só lugar!
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4 text-lg">
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400">✓</span>
+                        <span>100% Grátis</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400">✓</span>
+                        <span>Sem Downloads</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-green-400">✓</span>
+                        <span>Mobile Friendly</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section class="py-8 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="p-4">
+                    <div class="text-3xl font-bold stats-counter" id="games-count">10</div>
+                    <div class="text-gray-600">Jogos Disponíveis</div>
+                </div>
+                <div class="p-4">
+                    <div class="text-3xl font-bold stats-counter" id="players-count">1.2K</div>
+                    <div class="text-gray-600">Jogadores Ativos</div>
+                </div>
+                <div class="p-4">
+                    <div class="text-3xl font-bold stats-counter" id="sessions-count">25K</div>
+                    <div class="text-gray-600">Partidas Jogadas</div>
+                </div>
+                <div class="p-4">
+                    <div class="text-3xl font-bold stats-counter">⭐⭐⭐⭐⭐</div>
+                    <div class="text-gray-600">Avaliação Média</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Central Banner Ad -->
+    <div class="bg-gray-100 py-4">
+        <div class="max-w-sm mx-auto text-center">
+            <div class="bg-gray-200 text-gray-500 rounded flex items-center justify-center" style="width:300px; height:250px; margin:0 auto;">
+                📢 Espaço Publicitário 300x250
+            </div>
+        </div>
+    </div>
+
+    <!-- Games Section -->
+    <main class="container mx-auto px-4 py-12">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                🎯 Escolha Seu Jogo
+            </h2>
+            <p class="text-gray-600 text-lg max-w-2xl mx-auto">
+                Diversão garantida com os melhores jogos clássicos, otimizados para todos os dispositivos.
+            </p>
+        </div>
+
+        <!-- Games Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="games-grid">
+            
+            <!-- Jogo da Velha -->
+            <div class="game-card bg-white rounded-2xl shadow-lg p-6 text-center pulse-glow">
+                <div class="text-6xl mb-4">⭕</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Jogo da Velha</h3>
+                <p class="text-gray-600 mb-4 text-sm">Clássico contra IA inteligente</p>
+                <div class="flex justify-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">⚡ Disponível</span>
+                </div>
+                <a href="games/jogo-da-velha.html" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 inline-block">
+                    🎮 Jogar Agora
+                </a>
+            </div>
+
+            <!-- Damas -->
+            <div class="game-card bg-white rounded-2xl shadow-lg p-6 text-center pulse-glow">
+                <div class="text-6xl mb-4">🏁</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Damas</h3>
+                <p class="text-gray-600 mb-4 text-sm">IA com 3 níveis de dificuldade</p>
+                <div class="flex justify-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">⚡ Disponível</span>
+                </div>
+                <a href="games/damas.html" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 inline-block">
+                    🎮 Jogar Agora
+                </a>
+            </div>
+
+            <!-- Campo Minado -->
+            <div class="game-card bg-white rounded-2xl shadow-lg p-6 text-center pulse-glow">
+                <div class="text-6xl mb-4">💣</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Space Minesweeper</h3>
+                <p class="text-gray-600 mb-4 text-sm">Campo minado espacial épico</p>
+                <div class="flex justify-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">⚡ Disponível</span>
+                </div>
+                <a href="games/campo-minado.html" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 inline-block">
+                    🎮 Jogar Agora
+                </a>
+            </div>
+
+            <!-- Snake -->
+            <div class="game-card bg-white rounded-2xl shadow-lg p-6 text-center coming-soon opacity-75 cursor-not-allowed">
+                <div class="text-6xl mb-4">🐍</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Snake</h3>
+                <p class="text-gray-600 mb-4 text-sm">Cobrinha clássica renovada</p>
+                <div class="flex justify-center mb-4">
+                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">🚧 Em Desenvolvimento</span>
+                </div>
+                <button disabled class="bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg inline-block cursor-not-allowed">
+                    ⏳ Em Breve
+                </button>
+            </div>
+
+            <!-- Continue com os outros jogos... -->
+            
+        </div>
+    </main>
+
+    <!-- Bottom Banner Ad -->
+    <div class="bg-gray-100 py-4 mt-12">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="bg-gray-200 text-gray-500 py-6 rounded" style="height:90px; line-height:90px;">
+                📢 Espaço Publicitário 728x90
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold mb-4">🎮 GameHub</h3>
+                <p class="text-gray-300 mb-4">
+                    Os melhores jogos online gratuitos, otimizados para desktop e mobile.
+                </p>
+                <p class="text-gray-400">
+                    © 2025 GameHub. Todos os direitos reservados.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Animação dos contadores
+        function animateCounters() {
+            const counters = [
+                { element: document.getElementById('games-count'), target: 10, suffix: '' },
+                { element: document.getElementById('players-count'), target: 1200, suffix: '+' },
+                { element: document.getElementById('sessions-count'), target: 25000, suffix: '+' }
+            ];
+
+            counters.forEach(counter => {
+                if (counter.element) {
+                    let current = 0;
+                    const increment = counter.target / 50;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= counter.target) {
+                            current = counter.target;
+                            clearInterval(timer);
+                        }
+                        
+                        let displayValue = Math.floor(current);
+                        if (displayValue >= 1000) {
+                            displayValue = (displayValue / 1000).toFixed(1) + 'K';
+                        }
+                        counter.element.textContent = displayValue + counter.suffix;
+                    }, 50);
+                }
+            });
+        }
+
+        // Inicializar animações quando carregar
+        document.addEventListener('DOMContentLoaded', () => {
+            animateCounters();
+        });
+    </script>
+</body>
+</html>
