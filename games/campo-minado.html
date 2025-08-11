@@ -3,663 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💣 Space Minesweeper - GameHub</title>
+    <title>🎮 GameHub - Portal de Jogos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap');
         
-        body {
+        * {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #0c0c23 0%, #2d1b69 50%, #11998e 100%);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             background-attachment: fixed;
         }
         
-        .space-title {
-            font-family: 'Orbitron', monospace;
-            text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
-        }
-        
-        .cell {
-            transition: all 0.2s ease;
-            border: 1px solid #444;
-            background: linear-gradient(145deg, #2a2a3a, #1a1a2e);
-        }
-        
-        .cell:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-        }
-        
-        .cell.revealed {
-            background: linear-gradient(145deg, #3a3a4a, #2a2a3a);
-            border-color: #666;
-        }
-        
-        .cell.flagged {
-            background: linear-gradient(145deg, #ff6b6b, #ee5a52);
-            box-shadow: 0 0 15px rgba(255, 107, 107, 0.4);
-        }
-        
-        .cell.mine {
-            background: linear-gradient(145deg, #ff4757, #ff3742);
-            animation: explode 0.5s ease-out;
-        }
-        
-        @keyframes explode {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-        }
-        
-        .glow-button {
-            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
-            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+        .game-card {
             transition: all 0.3s ease;
-        }
-        
-        .glow-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 210, 255, 0.4);
-        }
-        
-        .space-panel {
-            background: rgba(26, 26, 46, 0.9);
-            border: 1px solid rgba(0, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
         }
         
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from {
+                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.2);
+            }
+            to {
+                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
         .neon-text {
-            color: #00ffff;
-            text-shadow: 0 0 10px #00ffff;
-        }
-        
-        .mine-counter {
-            font-family: 'Orbitron', monospace;
-            background: linear-gradient(45deg, #ff6b6b, #feca57);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: none;
-        }
-        
-        .time-counter {
-            font-family: 'Orbitron', monospace;
-            color: #00ff88;
-            text-shadow: 0 0 10px #00ff88;
-        }
-        
-        /* Responsividade do tabuleiro */
-        .game-board {
-            max-width: 95vw;
-            margin: 0 auto;
-        }
-        
-        .board-container {
-            width: fit-content;
-            margin: 0 auto;
-        }
-        
-        /* Ajustes responsivos automáticos */
-        @media (max-width: 768px) {
-            .board-container {
-                transform-origin: center;
-            }
-            
-            /* Escalas otimizadas para mobile */
-            .board-small {
-                transform: scale(0.95); /* Fácil maior no mobile */
-            }
-            
-            .board-medium {
-                transform: scale(0.85); /* Expert mobile confortável */
-            }
-            
-            .board-large {
-                transform: scale(0.6); /* Expert desktop ainda menor */
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .board-small {
-                transform: scale(0.9);
-            }
-            
-            .board-medium {
-                transform: scale(0.8); /* Expert mobile ainda confortável */
-            }
-            
-            .board-large {
-                transform: scale(0.55);
-            }
+            text-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
-    <!-- Google AdSense Top Banner -->
-    <div class="fixed top-0 left-0 right-0 bg-black/80 backdrop-blur-sm z-10 py-2">
-        <div class="max-w-4xl mx-auto text-center">
-            <ins class="adsbygoogle"
-                 style="display:block"
-                 data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-                 data-ad-slot="XXXXXXXXXX"
-                 data-ad-format="auto"
-                 data-full-width-responsive="true"></ins>
+<body class="gradient-bg min-h-screen">
+    <!-- Header Banner Ad Placeholder -->
+    <div class="bg-gray-100 py-2 text-center">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-gray-200 text-gray-500 py-6 rounded" style="height:90px; line-height:90px;">
+                📢 Espaço Publicitário 728x90
+            </div>
         </div>
     </div>
 
-    <div class="space-panel rounded-3xl p-6 md:p-8 w-full max-w-2xl mt-20">
-        <!-- Header -->
-        <div class="text-center mb-6">
-            <h1 class="space-title text-3xl md:text-5xl font-bold mb-2">
-                💣 SPACE MINESWEEPER
+    <!-- Header -->
+    <header class="text-center py-12 px-4">
+        <div class="floating">
+            <h1 class="text-5xl md:text-7xl font-black text-white mb-4 neon-text">
+                🎮 GameHub
             </h1>
-            <p class="neon-text text-lg">Navegue pelas minas espaciais!</p>
-            
-            <!-- Voltar para menu -->
-            <div class="mt-4">
-                <a href="index.html" class="text-cyan-400 hover:text-cyan-300 font-semibold transition">
-                    ← Voltar ao Menu Principal
+        </div>
+        <p class="text-xl md:text-2xl text-white/90 mb-8">
+            Portal de Jogos Clássicos
+        </p>
+        
+        <!-- Estatísticas -->
+        <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-white">
+                <div class="text-3xl font-bold">4</div>
+                <div class="text-white/80">Jogos Disponíveis</div>
+            </div>
+            <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-white">
+                <div class="text-3xl font-bold">100%</div>
+                <div class="text-white/80">Gratuito</div>
+            </div>
+            <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-white">
+                <div class="text-3xl font-bold">IA</div>
+                <div class="text-white/80">Inteligente</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Central Banner Ad Placeholder -->
+    <div class="bg-gray-100 py-4">
+        <div class="max-w-sm mx-auto text-center">
+            <div class="bg-gray-200 text-gray-500 rounded flex items-center justify-center" style="width:300px; height:250px; margin:0 auto;">
+                📢 Espaço Publicitário 300x250
+            </div>
+        </div>
+    </div>
+
+    <!-- Jogos -->
+    <main class="max-w-6xl mx-auto px-4 py-12">
+        <h2 class="text-3xl md:text-4xl font-bold text-white text-center mb-12">
+            🎯 Jogos Disponíveis
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Snake Game -->
+            <div class="game-card bg-white rounded-2xl shadow-lg p-6 text-center pulse-glow">
+                <div class="text-6xl mb-4">🐍</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Snake Game</h3>
+                <p class="text-gray-600 mb-4 text-sm">Clássico jogo da cobrinha</p>
+                <div class="flex justify-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">🔥 Novo!</span>
+                </div>
+                <a href="#" onclick="alert('Snake Game em desenvolvimento')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 inline-block">
+                    🎮 Jogar Agora
+                </a>
+            </div>
+
+            <!-- Jogo da Velha -->
+            <div class="game-card bg-white rounded-2xl shadow-lg p-6 text-center pulse-glow">
+                <div class="text-6xl mb-4">⭕</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Jogo da Velha</h3>
+                <p class="text-gray-600 mb-4 text-sm">Clássico contra IA inteligente</p>
+                <div class="flex justify-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">⚡ Disponível</span>
+                </div>
+                <a href="#" onclick="alert('Jogo da Velha em desenvolvimento')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 inline-block">
+                    🎮 Jogar Agora
+                </a>
+            </div>
+
+            <!-- Damas -->
+            <div class="game-card bg-white rounded-2xl shadow-lg p-6 text-center pulse-glow">
+                <div class="text-6xl mb-4">🏁</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Damas</h3>
+                <p class="text-gray-600 mb-4 text-sm">IA com 3 níveis de dificuldade</p>
+                <div class="flex justify-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">⚡ Disponível</span>
+                </div>
+                <a href="#" onclick="alert('Damas em desenvolvimento')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 inline-block">
+                    🎮 Jogar Agora
+                </a>
+            </div>
+
+            <!-- Campo Minado -->
+            <div class="game-card bg-white rounded-2xl shadow-lg p-6 text-center pulse-glow">
+                <div class="text-6xl mb-4">💣</div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Space Minesweeper</h3>
+                <p class="text-gray-600 mb-4 text-sm">Campo minado espacial épico</p>
+                <div class="flex justify-center mb-4">
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-semibold">⚡ Disponível</span>
+                </div>
+                <a href="#" onclick="alert('Campo Minado em desenvolvimento')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-300 inline-block">
+                    🎮 Jogar Agora
                 </a>
             </div>
         </div>
+    </main>
 
-        <!-- Painel de Controles -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <!-- Contador de Minas -->
-            <div class="space-panel rounded-lg p-4 text-center">
-                <div class="mine-counter text-2xl font-bold mb-1" id="mine-count">💣 10</div>
-                <div class="text-cyan-300 text-sm">Minas Restantes</div>
-            </div>
-            
-            <!-- Timer -->
-            <div class="space-panel rounded-lg p-4 text-center">
-                <div class="time-counter text-2xl font-bold mb-1" id="timer">⏱️ 000</div>
-                <div class="text-cyan-300 text-sm">Segundos</div>
-            </div>
-            
-            <!-- Status -->
-            <div class="space-panel rounded-lg p-4 text-center">
-                <div class="text-2xl font-bold mb-1" id="status">🚀</div>
-                <div class="text-cyan-300 text-sm" id="status-text">Explorando</div>
-            </div>
-        </div>
-
-        <!-- Seletor de Dificuldade -->
-        <div class="text-center mb-6">
-            <select id="difficulty" class="bg-gray-800 text-cyan-300 border border-cyan-600 rounded-lg px-4 py-2 font-semibold">
-                <option value="easy">🟢 Iniciante (9x9, 10 minas)</option>
-                <option value="medium" selected>🟡 Avançado (16x16, 40 minas)</option>
-                <option value="hard" id="expert-option">🔴 Expert</option>
-            </select>
-        </div>
-
-        <!-- Tabuleiro -->
-        <div class="game-board flex justify-center mb-6">
-            <div class="board-container">
-                <div id="board" class="grid gap-0.5 md:gap-1 p-2 md:p-4 rounded-lg bg-black/50">
-                    <!-- Células criadas via JavaScript -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Controles -->
-        <div class="flex flex-col sm:flex-row gap-3">
-            <button id="new-game" class="glow-button text-white font-bold py-3 px-6 rounded-lg transition flex-1">
-                🆕 Novo Jogo
-            </button>
-            <button id="show-rules" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition flex-1">
-                📖 Regras
-            </button>
-        </div>
-
-        <!-- Banner Bottom Placeholder -->
-        <div class="mt-6 text-center">
-            <div class="bg-gray-200 text-gray-500 py-8 rounded">
-                📢 Espaço Publicitário (AdSense)
+    <!-- Bottom Banner Ad Placeholder -->
+    <div class="bg-gray-100 py-4 mt-12">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="bg-gray-200 text-gray-500 py-6 rounded" style="height:90px; line-height:90px;">
+                📢 Espaço Publicitário 728x90
             </div>
         </div>
     </div>
 
-    <!-- Modal de Regras -->
-    <div id="rules-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-30 p-4">
-        <div class="bg-gray-900 text-white rounded-lg p-6 max-w-md w-full">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold neon-text">📖 Como Jogar</h2>
-                <button id="close-rules" class="text-gray-400 hover:text-white text-xl font-bold">✕</button>
+    <!-- Footer -->
+    <footer class="bg-black/20 backdrop-blur-sm text-white py-8 mt-12">
+        <div class="max-w-4xl mx-auto text-center px-4">
+            <h3 class="text-2xl font-bold mb-4">🎮 GameHub</h3>
+            <p class="text-white/80 mb-4">
+                Portal de jogos clássicos com IA inteligente
+            </p>
+            <div class="flex justify-center space-x-6 text-sm text-white/60">
+                <span>📱 Responsivo</span>
+                <span>🤖 IA Avançada</span>
+                <span>🎯 Três Dificuldades</span>
+                <span>💯 Gratuito</span>
             </div>
-            <div class="space-y-3">
-                <p><strong class="text-cyan-400">🎯 Objetivo:</strong> Revelar todas as casas sem minas</p>
-                <p><strong class="text-cyan-400">👆 Clique esquerdo:</strong> Revelar casa</p>
-                <p><strong class="text-cyan-400">👆 Clique direito:</strong> Marcar/desmarcar bandeira</p>
-                <p><strong class="text-cyan-400">🔢 Números:</strong> Quantidade de minas adjacentes</p>
-                <p><strong class="text-cyan-400">🚩 Bandeiras:</strong> Marque onde suspeita que há minas</p>
-                <p><strong class="text-red-400">💣 Mina:</strong> Se clicar em uma mina, perdeu!</p>
-                <p><strong class="text-green-400">🏆 Vitória:</strong> Revele todas as casas sem minas</p>
-            </div>
-            <button id="close-rules-btn" class="w-full mt-4 glow-button text-white font-bold py-2 rounded-lg">
-                ✅ Entendi!
-            </button>
-        </div>
-    </div>
-
-    <!-- Modal de Game Over -->
-    <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-30 p-4">
-        <div class="bg-gray-900 text-white rounded-lg p-6 max-w-md w-full text-center">
-            <div id="game-result" class="text-3xl font-bold mb-4"></div>
-            <div id="final-stats" class="mb-4 text-cyan-300"></div>
-            
-            <!-- AdSense no Game Over -->
-            <div class="mb-4">
-                <div class="bg-gray-200 text-gray-500 rounded flex items-center justify-center" style="width:300px; height:250px; margin:0 auto;">
-                    📢 Anúncio
-                </div>
-            </div>
-            
-            <div class="flex gap-2">
-                <button id="play-again" class="flex-1 glow-button text-white font-bold py-3 px-4 rounded-lg transition">
-                    🚀 Jogar Novamente
-                </button>
-                <a href="index.html" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition text-center">
-                    🏠 Menu Principal
-                </a>
+            <div class="mt-6 pt-6 border-t border-white/20 text-white/50 text-sm">
+                © 2025 GameHub - Todos os direitos reservados
             </div>
         </div>
-    </div>
+    </footer>
 
     <script type="module">
-        class SpaceMinesweeper {
-            constructor() {
-                this.board = [];
-                this.revealed = [];
-                this.flagged = [];
-                this.gameState = 'playing'; // playing, won, lost
-                this.mineCount = 10;
-                this.rows = 9;
-                this.cols = 9;
-                this.revealedCount = 0;
-                this.startTime = null;
-                this.timer = null;
-                this.bestTimes = JSON.parse(localStorage.getItem('space-minesweeper-times') || '{"easy": null, "medium": null, "hard": null}');
-                
-                // Detectar se é mobile para ajustar dificuldades
-                const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-                
-                this.difficulties = {
-                    easy: { rows: 9, cols: 9, mines: 10, name: "Iniciante" },
-                    medium: { rows: 16, cols: 16, mines: 40, name: "Avançado" },
-                    hard: isMobileDevice 
-                        ? { rows: 12, cols: 16, mines: 35, name: "Expert" } // Mobile: menor e menos minas
-                        : { rows: 16, cols: 22, mines: 65, name: "Expert" } // Desktop: maior
-                };
-                
-                this.init();
-            }
-
-            init() {
-                this.attachEventListeners();
-                this.updateExpertOptionText();
-                this.newGame();
-                
-                // AdSense desabilitado para desenvolvimento
-                console.log('Jogo carregado com sucesso!');
-            }
-
-            updateExpertOptionText() {
-                const expertOption = document.getElementById('expert-option');
-                const diff = this.difficulties.hard;
-                expertOption.textContent = `🔴 Expert (${diff.rows}x${diff.cols}, ${diff.mines} minas)`;
-            }
-
-            attachEventListeners() {
-                document.getElementById('new-game').addEventListener('click', () => this.newGame());
-                document.getElementById('difficulty').addEventListener('change', (e) => {
-                    const diff = this.difficulties[e.target.value];
-                    this.rows = diff.rows;
-                    this.cols = diff.cols;
-                    this.mineCount = diff.mines;
-                    this.newGame();
-                });
-
-                // Modal de regras
-                document.getElementById('show-rules').addEventListener('click', () => {
-                    document.getElementById('rules-modal').classList.remove('hidden');
-                    document.getElementById('rules-modal').classList.add('flex');
-                });
-
-                document.getElementById('close-rules').addEventListener('click', () => this.closeRulesModal());
-                document.getElementById('close-rules-btn').addEventListener('click', () => this.closeRulesModal());
-
-                // Modal de game over
-                document.getElementById('play-again').addEventListener('click', () => {
-                    document.getElementById('game-over-modal').classList.add('hidden');
-                    document.getElementById('game-over-modal').classList.remove('flex');
-                    this.newGame();
-                });
-
-                // Botão Menu Principal agora é um link HTML, não precisa de JavaScript
-            }
-
-            closeRulesModal() {
-                document.getElementById('rules-modal').classList.add('hidden');
-                document.getElementById('rules-modal').classList.remove('flex');
-            }
-
-            newGame() {
-                this.gameState = 'playing';
-                this.revealedCount = 0;
-                this.startTime = null;
-                this.stopTimer();
-                
-                this.board = Array(this.rows).fill().map(() => Array(this.cols).fill(0));
-                this.revealed = Array(this.rows).fill().map(() => Array(this.cols).fill(false));
-                this.flagged = Array(this.rows).fill().map(() => Array(this.cols).fill(false));
-                
-                this.placeMines();
-                this.calculateNumbers();
-                this.createBoard();
-                this.updateMineCount();
-                this.updateTimer(0);
-                this.updateStatus('🚀', 'Explorando');
-            }
-
-            placeMines() {
-                let minesPlaced = 0;
-                while (minesPlaced < this.mineCount) {
-                    const row = Math.floor(Math.random() * this.rows);
-                    const col = Math.floor(Math.random() * this.cols);
-                    
-                    if (this.board[row][col] !== -1) {
-                        this.board[row][col] = -1; // -1 representa mina
-                        minesPlaced++;
-                    }
-                }
-            }
-
-            calculateNumbers() {
-                for (let row = 0; row < this.rows; row++) {
-                    for (let col = 0; col < this.cols; col++) {
-                        if (this.board[row][col] !== -1) {
-                            let count = 0;
-                            for (let i = -1; i <= 1; i++) {
-                                for (let j = -1; j <= 1; j++) {
-                                    const newRow = row + i;
-                                    const newCol = col + j;
-                                    if (newRow >= 0 && newRow < this.rows && 
-                                        newCol >= 0 && newCol < this.cols && 
-                                        this.board[newRow][newCol] === -1) {
-                                        count++;
-                                    }
-                                }
-                            }
-                            this.board[row][col] = count;
-                        }
-                    }
-                }
-            }
-
-            createBoard() {
-                const boardElement = document.getElementById('board');
-                const boardContainer = document.querySelector('.board-container');
-                
-                // Limpar classes anteriores
-                boardContainer.className = 'board-container';
-                
-                // Detectar tamanho da tela
-                const isMobile = window.innerWidth <= 768;
-                const isSmallMobile = window.innerWidth <= 480;
-                
-                // Determinar tamanho das células e escala baseado na dificuldade
-                let cellSizeClasses = ['w-8', 'h-8'];
-                let textSizeClass = 'text-sm';
-                let boardClass = '';
-                
-                if (this.cols <= 9) {
-                    // Fácil - 9x9
-                    cellSizeClasses = isMobile ? ['w-8', 'h-8'] : ['w-10', 'h-10'];
-                    textSizeClass = 'text-sm';
-                    boardClass = 'board-small';
-                } else if (this.cols <= 16 && this.rows <= 12) {
-                    // Expert Mobile - 12x16
-                    cellSizeClasses = isMobile ? ['w-5', 'h-5'] : ['w-6', 'h-6'];
-                    textSizeClass = 'text-xs';
-                    boardClass = 'board-medium';
-                } else if (this.cols <= 16) {
-                    // Médio - 16x16
-                    cellSizeClasses = isMobile ? ['w-4', 'h-4'] : ['w-6', 'h-6'];
-                    textSizeClass = 'text-xs';
-                    boardClass = 'board-medium';
-                } else {
-                    // Expert Desktop - 16x22
-                    cellSizeClasses = isMobile ? ['w-3', 'h-3'] : ['w-5', 'h-5'];
-                    textSizeClass = 'text-xs';
-                    boardClass = 'board-large';
-                }
-                
-                // Aplicar classe responsiva apenas em mobile
-                if (isMobile) {
-                    boardContainer.classList.add(boardClass);
-                }
-                
-                // Configurar grid
-                boardElement.style.gridTemplateColumns = `repeat(${this.cols}, 1fr)`;
-                boardElement.innerHTML = '';
-                
-                // Criar células
-                for (let row = 0; row < this.rows; row++) {
-                    for (let col = 0; col < this.cols; col++) {
-                        const cell = document.createElement('div');
-                        cell.classList.add(
-                            'cell', 'flex', 'items-center', 'justify-center', 
-                            textSizeClass, 'font-bold', 'cursor-pointer', 'rounded'
-                        );
-                        cellSizeClasses.forEach(cls => cell.classList.add(cls));
-                        cell.dataset.row = row;
-                        cell.dataset.col = col;
-                        
-                        cell.addEventListener('click', (e) => this.handleCellClick(e));
-                        cell.addEventListener('contextmenu', (e) => this.handleRightClick(e));
-                        
-                        boardElement.appendChild(cell);
-                    }
-                }
-            }
-
-            handleCellClick(e) {
-                if (this.gameState !== 'playing') return;
-                
-                const row = parseInt(e.target.dataset.row);
-                const col = parseInt(e.target.dataset.col);
-                
-                if (this.flagged[row][col] || this.revealed[row][col]) return;
-                
-                // Iniciar timer no primeiro clique
-                if (!this.startTime) {
-                    this.startTime = Date.now();
-                    this.startTimer();
-                }
-                
-                this.revealCell(row, col);
-            }
-
-            handleRightClick(e) {
-                e.preventDefault();
-                if (this.gameState !== 'playing') return;
-                
-                const row = parseInt(e.target.dataset.row);
-                const col = parseInt(e.target.dataset.col);
-                
-                if (this.revealed[row][col]) return;
-                
-                this.toggleFlag(row, col);
-            }
-
-            toggleFlag(row, col) {
-                this.flagged[row][col] = !this.flagged[row][col];
-                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-                
-                if (this.flagged[row][col]) {
-                    cell.textContent = '🚩';
-                    cell.classList.add('flagged');
-                } else {
-                    cell.textContent = '';
-                    cell.classList.remove('flagged');
-                }
-                
-                this.updateMineCount();
-            }
-
-            revealCell(row, col) {
-                if (this.revealed[row][col] || this.flagged[row][col]) return;
-                
-                this.revealed[row][col] = true;
-                this.revealedCount++;
-                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-                cell.classList.add('revealed');
-                
-                if (this.board[row][col] === -1) {
-                    // Acertou uma mina
-                    cell.textContent = '💥';
-                    cell.classList.add('mine');
-                    this.gameOver(false);
-                } else if (this.board[row][col] === 0) {
-                    // Casa vazia, revelar adjacentes
-                    cell.textContent = '';
-                    this.revealAdjacent(row, col);
-                } else {
-                    // Número
-                    cell.textContent = this.board[row][col];
-                    const colors = {
-                        1: '#00ffff', 2: '#00ff88', 3: '#ffff00', 
-                        4: '#ff8800', 5: '#ff4400', 6: '#ff0044',
-                        7: '#ff0088', 8: '#ff00ff'
-                    };
-                    cell.style.color = colors[this.board[row][col]] || '#ffffff';
-                }
-                
-                // Verificar vitória
-                const totalCells = this.rows * this.cols;
-                if (this.revealedCount === totalCells - this.mineCount) {
-                    this.gameOver(true);
-                }
-            }
-
-            revealAdjacent(row, col) {
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        const newRow = row + i;
-                        const newCol = col + j;
-                        if (newRow >= 0 && newRow < this.rows && 
-                            newCol >= 0 && newCol < this.cols && 
-                            !this.revealed[newRow][newCol]) {
-                            this.revealCell(newRow, newCol);
-                        }
-                    }
-                }
-            }
-
-            gameOver(won) {
-                this.gameState = won ? 'won' : 'lost';
-                this.stopTimer();
-                
-                if (won) {
-                    this.updateStatus('🏆', 'VITÓRIA!');
-                    
-                    // Salvar melhor tempo
-                    const currentDifficulty = document.getElementById('difficulty').value;
-                    const currentTime = Math.floor((Date.now() - this.startTime) / 1000);
-                    
-                    if (!this.bestTimes[currentDifficulty] || currentTime < this.bestTimes[currentDifficulty]) {
-                        this.bestTimes[currentDifficulty] = currentTime;
-                        localStorage.setItem('space-minesweeper-times', JSON.stringify(this.bestTimes));
-                    }
-                } else {
-                    this.updateStatus('💀', 'EXPLODIU!');
-                    this.revealAllMines();
-                }
-                
-                setTimeout(() => this.showGameOverModal(won), 1500);
-            }
-
-            revealAllMines() {
-                for (let row = 0; row < this.rows; row++) {
-                    for (let col = 0; col < this.cols; col++) {
-                        if (this.board[row][col] === -1 && !this.flagged[row][col]) {
-                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-                            cell.textContent = '💣';
-                            cell.classList.add('mine');
-                        }
-                    }
-                }
-            }
-
-            showGameOverModal(won) {
-                const modal = document.getElementById('game-over-modal');
-                const result = document.getElementById('game-result');
-                const stats = document.getElementById('final-stats');
-                
-                if (won) {
-                    result.textContent = '🎉 MISSÃO CUMPRIDA!';
-                    result.className = 'text-3xl font-bold mb-4 text-green-400 neon-text';
-                    const time = Math.floor((Date.now() - this.startTime) / 1000);
-                    const difficulty = document.getElementById('difficulty').value;
-                    const diffName = this.difficulties[difficulty].name;
-                    stats.innerHTML = `
-                        <div>⏱️ Tempo: ${time}s</div>
-                        <div>🎯 Dificuldade: ${diffName}</div>
-                        ${this.bestTimes[difficulty] ? `<div>🏆 Seu recorde: ${this.bestTimes[difficulty]}s</div>` : ''}
-                    `;
-                } else {
-                    result.textContent = '💥 NAVE DESTRUÍDA!';
-                    result.className = 'text-3xl font-bold mb-4 text-red-400';
-                    stats.innerHTML = '<div>🚀 Tente novamente, explorador espacial!</div>';
-                }
-                
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                
-                // Carregar anúncio no modal
-                try {
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                } catch (e) {
-                    console.log('AdSense não carregado no modal');
-                }
-            }
-
-            updateMineCount() {
-                const flaggedCount = this.flagged.flat().filter(f => f).length;
-                const remaining = this.mineCount - flaggedCount;
-                document.getElementById('mine-count').textContent = `💣 ${remaining}`;
-            }
-
-            updateStatus(emoji, text) {
-                document.getElementById('status').textContent = emoji;
-                document.getElementById('status-text').textContent = text;
-            }
-
-            startTimer() {
-                this.timer = setInterval(() => {
-                    if (this.startTime && this.gameState === 'playing') {
-                        const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
-                        this.updateTimer(elapsed);
-                    }
-                }, 1000);
-            }
-
-            stopTimer() {
-                if (this.timer) {
-                    clearInterval(this.timer);
-                    this.timer = null;
-                }
-            }
-
-            updateTimer(seconds) {
-                const formatted = seconds.toString().padStart(3, '0');
-                document.getElementById('timer').textContent = `⏱️ ${formatted}`;
-            }
-        }
-
-        // Inicializar jogo quando página carregar
         document.addEventListener('DOMContentLoaded', () => {
-            const game = new SpaceMinesweeper();
+            // Animação de entrada dos cards
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.5s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 200);
+            });
+            
+            // Estatísticas animadas
+            const stats = document.querySelectorAll('.text-3xl.font-bold');
+            stats.forEach(stat => {
+                const finalValue = stat.textContent;
+                if (!isNaN(parseInt(finalValue))) {
+                    let current = 0;
+                    const target = parseInt(finalValue);
+                    const increment = target / 30;
+                    
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        stat.textContent = Math.floor(current);
+                    }, 50);
+                }
+            });
+            
+            console.log('GameHub carregado com sucesso!');
         });
     </script>
 </body>
