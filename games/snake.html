@@ -237,9 +237,9 @@
                 <button id="play-again" class="flex-1 glow-button text-white font-bold py-3 px-4 rounded-lg transition">
                     🔄 Jogar Novamente
                 </button>
-                <button id="back-menu" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition">
+                <a href="../index.html" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded-lg transition text-center">
                     🏠 Menu Principal
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -337,9 +337,7 @@
                     this.startGame();
                 });
 
-                document.getElementById('back-menu').addEventListener('click', () => {
-                    window.location.href = '../index.html';
-                });
+
 
                 // Prevenir scroll com setas
                 document.addEventListener('keydown', (e) => {
