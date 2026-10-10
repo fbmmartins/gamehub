@@ -1,25 +1,29 @@
 # CONTEXTO ATUAL — GameHub
 
-Atualizado em: 2026-10-10
+Atualizado: 10/10/2026. Fonte de verdade: GitHub + Cloudflare.
 
-## Estado encontrado
-- Repositório: fbmmartins/gamehub (público, legado de 2025).
-- Branch principal: main @ 1408f6ca943d00f0dff91d644c00256970ac63bc.
-- Site existente em index.html, com quatro jogos HTML5 preservados em games/.
-- A VPS antiga ainda não foi reconciliada: SSH bridge indisponível; nenhum deploy ou remoção efetuado na VPS.
-- DNS jogos.siliciobrasil.com.br não foi encontrado na zona Silício Brasil na consulta de 10/10/2026.
+## Situação em produção — validada
+- URL: https://jogos.siliciobrasil.com.br/
+- Repositório: fbmmartins/gamehub, branch main.
+- PR #1 (merge commit 9a0de0ec3dda86f4aeb20611adfcf622416a9dcf) adicionou Pipo ao catálogo; cinco jogos existentes em games/.
+- Cloudflare conta af9a78b44e0f9137a58668f70771cc0b, zona siliciobrasil.com.br ID b0fab6806bde7eab3f81e3586862747c.
+- Worker produção: gamehub-prod-20261010.
+- Worker homologação: gamehub-hml-20261010 (workers.dev habilitado).
+- Domínio customizado do Worker: ID 24c5a3562397060929e8bffae5ae94976c0f59ee; serviço gamehub-prod-20261010, enabled=true.
+- DNS criado pela Cloudflare: jogos.siliciobrasil.com.br AAAA 100::, proxy ativo. **Não remover 100::**, é registro gerenciado da custom domain do Worker.
+- Os Workers de HML e produção retornaram o mesmo etag: d48b4ba1473b7bb41377c5ece2e9bc281279f9edd7fd4cca03af7d2d176c017d.
+- Homologação e produção: homepage + cinco rotas verificadas em navegador remoto Cloudflare, HTTP 200. Sintaxe JavaScript do Pipo aprovada em Node 22. Testes integrais de gameplay e responsividade visual ainda pendentes.
+- Cloudflare Pages: tentativa de integração GitHub falhou com erro Cloudflare 8000011 (Git installation). Alternativa atual: Workers servindo 6 documentos estáticos de GitHub. Reavaliar Pages após resolver integração ou viabilizar Direct Upload.
+- Nenhuma alteração realizada na VPS antiga. MCP SSH bridge local estava offline na sessão; reconciliação da VPS pendente.
 
-## Escopo desta mudança
-- Incluir como quinto jogo o Pipo — Patrulha dos Brinquedos.
-- Acrescentar card no catálogo com contagem atualizada de 4 para 5.
-- Preparar publicação **isolada**, inicialmente em Cloudflare Pages sem modificar produção antiga.
-- Não alterar os quatro jogos existentes, recursos da VPS, sistemas ou DNS de outros projetos.
+## Retorno e escopo
+- Checkpoint original do código: `checkpoint/pre-pipo-cloudflare-20261010` @ `1408f6ca943d00f0dff91d644c00256970ac63bc`.
+- Branch de trabalho anterior: `feature/pipo-cloudflare-20261010` @ `01342df3ce39342ccddce2a4eee9e53a6f6c22f6`.
+- Os quatro HTML anteriores não sofreram alteração.
+- Rollback de domínio **somente com autorização ou conforme incidente/roteiro aprovado**: antes, registrar o ID atual do domínio; remover especificamente a Worker custom domain 24c5... e seu DNS apenas se for seguro e autorizado; não alterar registros de outros serviços. Se necessário restaurar código, usar branch de checkpoint.
+- Modificar HML/produção separadamente e replicar **o mesmo artefato testado**. Não alterar o DNS principal sem nova validação.
 
-## Rollback / checkpoint
-- Branch: checkpoint/pre-pipo-cloudflare-20261010 @ 1408f6ca943d00f0dff91d644c00256970ac63bc
-- Recuperação do código: retornar a main/checkpoint no GitHub ou reverter somente os arquivos desta branch.
-- Cloudflare: criar projeto Pages isolado sem domínio principal; caso falhe, desligar/remover somente a configuração nova após registrar seu estado.
-- Cutover do domínio apenas após validação e promoção.
-
-## Próximo passo
-Validar diffs e smoke de cinco rotas em Preview do Cloudflare Pages, revisar mobile/desktop; só depois configurar jogos.siliciobrasil.com.br.
+## Próximos passos
+1. Abrir portal no celular e computador e validar visual e jogabilidade do Pipo.
+2. Quando MCP VPS funcionar, identificar o antigo portal na VPS sem excluir nada.
+3. Avaliar custo/uso e migração para Cloudflare Pages via Direct Upload; registrar plano/rollback antes.

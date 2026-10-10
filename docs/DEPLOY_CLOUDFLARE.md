@@ -1,0 +1,32 @@
+# DEPLOY Cloudflare — GameHub — 10/10/2026
+
+## Ambientes
+- HML: https://gamehub-hml-20261010.mexcardbrasil.workers.dev/
+- PROD: https://jogos.siliciobrasil.com.br/
+- Conta CF: af9a78b44e0f9137a58668f70771cc0b.
+- Zona: b0fab6806bde7eab3f81e3586862747c.
+- Workers: gamehub-hml-20261010; gamehub-prod-20261010.
+- Domínio (Worker Custom Domain ID): 24c5a3562397060929e8bffae5ae94976c0f59ee.
+- Fonte: GitHub fbmmartins/gamehub main, arquivos `index.html` e `games/*.html`.
+
+## Publicação técnica
+Um Worker estático armazena como strings HTML todos os seis documentos e atende a `/`, `/index.html` e `/games/*.html`; não há banco, credenciais nem acesso à VPS. Cache HTTP 120 segundos. HTTPS via Worker Custom Domain Cloudflare.
+
+Os dois Workers foram publicados com o mesmo pacote verificado (etag `d48b4ba1473b7bb41377c5ece2e9bc281279f9edd7fd4cca03af7d2d176c017d`). A API de instalação Git automática do Pages retornou erro 8000011; não foi criado projeto Pages.
+
+## Validação
+- HTTP 200 em 6/6 rotas do HML e do domínio final via Browser Rendering.
+- Cartão Pipo visível no catálogo.
+- JavaScript extraído do Pipo: `node --check` aprovado.
+- Testes completos de interação, mobile e acessibilidade pendentes; não afirmar validação funcional completa.
+- Não existe polling na aplicação ou na infraestrutura de publicação.
+
+## Rollback
+1. Conferir domínio e Worker de produção existentes na API antes de intervir.
+2. Se um deploy novo causar regressão: restaurar imediatamente o artefato Worker anterior identificado pelo backup/etag antes de publicar.
+3. Se remover a publicação inicial: desassociar apenas o domínio `24c5a3562397060929e8bffae5ae94976c0f59ee` e verificar registros associados; não modificar a zona inteira.
+4. Para retornar o GitHub à versão de 2025, usar `checkpoint/pre-pipo-cloudflare-20261010` no processo normal de rollback, preservando evidências.
+5. Não mexer na instalação da VPS até identificá-la e criar backup próprio.
+
+## Evolução sugerida
+Resolver GitHub integration no Cloudflare Pages ou adotar Pages Direct Upload com CI/CD autenticado. Uma migração para Pages demanda novo checkpoint, novo preview, smoke de 6 rotas, read-back DNS e plano de rollback.
