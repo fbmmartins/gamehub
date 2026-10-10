@@ -1,0 +1,22 @@
+{
+  "task": "Adicionar jogo Pipo ao GameHub e preparar publicação isolada no Cloudflare Pages",
+  "branch": "feature/pipo-cloudflare-20261010",
+  "base_sha": "1408f6ca943d00f0dff91d644c00256970ac63bc",
+  "allowed_paths": [
+    "games/pipo-patrulha-dos-brinquedos.html",
+    "index.html",
+    "docs/**",
+    ".silicio/scope/**",
+    "INICIO.md"
+  ],
+  "protected_paths": [
+    "games/snake.html",
+    "games/damas.html",
+    "games/jogo-da-velha.html",
+    "games/campo-minado.html",
+    ".github/**",
+    "worker/**",
+    "supabase/**"
+  ],
+  "approved_protected_paths": []
+}
