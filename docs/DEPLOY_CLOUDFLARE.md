@@ -12,14 +12,20 @@
 ## Publicação técnica
 Um Worker estático armazena como strings HTML todos os seis documentos e atende a `/`, `/index.html` e `/games/*.html`; não há banco, credenciais nem acesso à VPS. Cache HTTP 120 segundos. HTTPS via Worker Custom Domain Cloudflare.
 
-Os dois Workers foram publicados com o mesmo pacote verificado (etag `d48b4ba1473b7bb41377c5ece2e9bc281279f9edd7fd4cca03af7d2d176c017d`). A API de instalação Git automática do Pages retornou erro 8000011; não foi criado projeto Pages.
+Na correção Pipo v2 (10/10/2026), HML e PROD foram republicados com **o mesmo pacote** (etag `ebdcb5e0a57d3cc0dea91804bf3af5378c795e9895d43adcdc61eec65603c9ea`). Etag anterior: `d48b4ba1473b7bb41377c5ece2e9bc281279f9edd7fd4cca03af7d2d176c017d`. A API de instalação Git automática do Pages retornou erro 8000011; não foi criado projeto Pages.
 
 ## Validação
 - HTTP 200 em 6/6 rotas do HML e do domínio final via Browser Rendering.
 - Cartão Pipo visível no catálogo.
 - JavaScript extraído do Pipo: `node --check` aprovado.
-- Testes completos de interação, mobile e acessibilidade pendentes; não afirmar validação funcional completa.
+- Playwright local: 360×740, 390×844, 768×1024, 1366×768, 1440×900; sem erros JS e sem overflow horizontal. Capturas mobile e desktop verificadas. Cloudflare Browser Rendering HML e PROD: viewport 390×844 -> canvas 480×810; viewport 1366×768 -> canvas 1080×690; ambos HTTP 200. Jogabilidade completa em dispositivos físicos ainda necessita avaliação do usuário.
 - Não existe polling na aplicação ou na infraestrutura de publicação.
+
+## Correção v2 e checkpoint
+- PR #3 merge main: `5986a3c3bc1e2791561d3aa72c4e0ef0123424d7`
+- Branch checkpoint: `checkpoint/pre-pipo-mobile-layout-20261010` -> `2593d9881a9c4abcb9589c97cfee81cef15d8242`.
+- HTML alterado apenas do Pipo, índice e demais jogos intactos. O Worker foi reconstruído de seis arquivos HTML versionados.
+- Para retornar a v1: recuperar o Pipo do checkpoint, gerar Worker de HML com os mesmos 6 arquivos, testar, depois promover pacote igual ao Worker de PROD. Não trocar DNS para rollback do código.
 
 ## Rollback
 1. Conferir domínio e Worker de produção existentes na API antes de intervir.

@@ -11,10 +11,17 @@ Atualizado: 10/10/2026. Fonte de verdade: GitHub + Cloudflare.
 - Worker homologação: gamehub-hml-20261010 (workers.dev habilitado).
 - Domínio customizado do Worker: ID 24c5a3562397060929e8bffae5ae94976c0f59ee; serviço gamehub-prod-20261010, enabled=true.
 - DNS criado pela Cloudflare: jogos.siliciobrasil.com.br AAAA 100::, proxy ativo. **Não remover 100::**, é registro gerenciado da custom domain do Worker.
-- Os Workers de HML e produção retornaram o mesmo etag: d48b4ba1473b7bb41377c5ece2e9bc281279f9edd7fd4cca03af7d2d176c017d.
-- Homologação e produção: homepage + cinco rotas verificadas em navegador remoto Cloudflare, HTTP 200. Sintaxe JavaScript do Pipo aprovada em Node 22. Testes integrais de gameplay e responsividade visual ainda pendentes.
+- Os Workers de HML e produção usam o mesmo artefato **Pipo v2** (etag `ebdcb5e0a57d3cc0dea91804bf3af5378c795e9895d43adcdc61eec65603c9ea`).
+- Homologação e produção: homepage + cinco rotas verificadas em navegador remoto Cloudflare, HTTP 200. Sintaxe JavaScript do Pipo aprovada em Node 22. Validação da v2: Playwright local em 360×740, 390×844, 768×1024, 1366×768 e 1440×900; sem erros JavaScript e sem scroll horizontal. Inspeção visual local em mobile e desktop. Cloudflare Browser Rendering HML e PROD confirmou canvas vertical 480×810 no viewport 390×844 e horizontal 1080×690 no viewport 1366×768, ambos HTTP 200. Jogabilidade completa por usuário ainda pendente.
 - Cloudflare Pages: tentativa de integração GitHub falhou com erro Cloudflare 8000011 (Git installation). Alternativa atual: Workers servindo 6 documentos estáticos de GitHub. Reavaliar Pages após resolver integração ou viabilizar Direct Upload.
 - Nenhuma alteração realizada na VPS antiga. MCP SSH bridge local estava offline na sessão; reconciliação da VPS pendente.
+
+## Correção mobile Pipo v2 (10/10/2026)
+- PR #3, merge commit `5986a3c3bc1e2791561d3aa72c4e0ef0123424d7`.
+- Corrigido somente `games/pipo-patrulha-dos-brinquedos.html`: cachorro central inferior, progresso no topo, última curva afastada, viewport móvel com tabuleiro vertical (480×810), controles de toque e recálculo da pista na rotação.
+- Checkpoint específico: `checkpoint/pre-pipo-mobile-layout-20261010` @ `2593d9881a9c4abcb9589c97cfee81cef15d8242`.
+- Worker PROD anterior à atualização: etag `d48b4ba1473b7bb41377c5ece2e9bc281279f9edd7fd4cca03af7d2d176c017d`; a branch checkpoint mantém o HTML anterior para remontagem, preservando também os cinco outros documentos.
+- DNS e VPS não modificados nesta correção.
 
 ## Retorno e escopo
 - Checkpoint original do código: `checkpoint/pre-pipo-cloudflare-20261010` @ `1408f6ca943d00f0dff91d644c00256970ac63bc`.
