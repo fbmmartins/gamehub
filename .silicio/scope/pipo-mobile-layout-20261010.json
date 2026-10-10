@@ -1,0 +1,19 @@
+{
+  "task": "Pipo: tabuleiro mobile vertical, cachorro central, progresso no topo, última reta livre",
+  "branch": "feature/pipo-mobile-layout-20261010",
+  "base_sha": "2593d9881a9c4abcb9589c97cfee81cef15d8242",
+  "allowed_paths": [
+    "games/pipo-patrulha-dos-brinquedos.html",
+    ".silicio/scope/pipo-mobile-layout-20261010.json",
+    "docs/CONTEXTO_ATUAL.md"
+  ],
+  "protected_paths": [
+    "index.html",
+    "games/snake.html",
+    "games/jogo-da-velha.html",
+    "games/damas.html",
+    "games/campo-minado.html",
+    ".github/**"
+  ],
+  "approved_protected_paths": []
+}

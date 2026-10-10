@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#112d38" />
+  <meta name="description" content="Pipo e os Brinquedos: jogo gratuito de combinar bolinhas, com tabuleiro responsivo para celular e computador." />
   <title>Pipo — Patrulha dos Brinquedos</title>
   <style>
     :root { color-scheme: dark; --bg:#0b1c27; --ink:#eaf9f2; --muted:#a3c6c3; --accent:#ffd57e; }
@@ -39,7 +40,34 @@
     #barkButton{background:#ffd57f;color:#1c4147;border:1px solid #ffedb8;box-shadow:0 3px 0 #a97f44}
     #barkButton:disabled{opacity:.48;filter:grayscale(.6);cursor:not-allowed}
     .footer{margin-top:16px;font-size:12px;color:#89b5ae;text-align:center}
-    @media(max-width:640px){body{padding:8px;align-items:flex-start}.top{margin:5px 1px 10px}.logo{min-width:43px;height:43px;font-size:24px;border-radius:13px}.title{font-size:19px}.subtitle{font-size:10px}.stats{gap:5px}.stat{min-width:86px;padding:6px 10px;border-radius:10px}.stat strong{font-size:18px}.stage{border-radius:15px;border-width:2px}.help{font-size:12px}.controls{width:100%}.smallbtn{flex:1}.modal{padding:19px}.modal h2{font-size:24px}.modal p{font-size:13px}.modal .mascot{font-size:45px}}
+    @media(max-width:640px) and (orientation:portrait){
+      html,body{width:100%;min-height:100dvh;overflow-x:hidden}
+      body{padding:6px 5px max(9px,env(safe-area-inset-bottom));align-items:flex-start}
+      .shell{width:100%;max-width:100%;min-width:0}
+      .top{margin:1px 2px 8px;gap:8px;display:flex;flex-direction:column;align-items:stretch}
+      .brand{gap:9px}
+      .logo{min-width:37px;height:37px;font-size:22px;border-radius:11px}
+      .title{font-size:clamp(17px,5vw,22px);letter-spacing:-.4px}
+      .subtitle{font-size:10px;margin-top:2px}
+      .stats{width:100%;gap:6px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+      .stat{min-width:0;padding:5px 9px;border-radius:10px}
+      .stat small{font-size:9px;letter-spacing:.6px}
+      .stat strong{font-size:17px}
+      .stage{border-radius:16px;border-width:2px}
+      #game{width:100%;height:auto;aspect-ratio:480/810}
+      .help{margin:8px 2px 0;gap:8px;font-size:12px}
+      .help>span{font-size:11px;line-height:1.3;order:2}
+      .controls{order:1;width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+      .smallbtn{width:100%;min-height:44px;padding:7px 3px;border-radius:9px;font-size:11px;line-height:1.15}
+      .modal{padding:17px 16px;border-radius:17px;border-width:3px}
+      .modal h2{font-size:24px}
+      .modal p{font-size:13px}
+      .modal .mascot{font-size:45px}
+      .primary{min-height:46px}
+      .footer{display:none}
+    }
+    @media(max-width:375px) and (orientation:portrait){.title{font-size:17px}.smallbtn{font-size:10px}}
+
   </style>
 </head>
 <body>
@@ -67,7 +95,13 @@
       'use strict';
       const canvas = document.querySelector('#game'), ctx = canvas.getContext('2d');
       const $ = s => document.querySelector(s);
-      const W=1080, H=690, R=16, SPACE=33;
+      // O jogo tem dois tabuleiros reais: paisagem no desktop e retrato no celular.
+      // Não usamos CSS para simplesmente encolher o tabuleiro de computador.
+      let W=1080, H=690;
+      const R=16, SPACE=33;
+      let portrait=false;
+      const dog={x:540,y:584};
+      const house={x:958,y:518};
       const colors=[
         {fill:'#fc897b',bright:'#ffd0b8',dark:'#ae4c5a'},
         {fill:'#83dcea',bright:'#d7fcff',dark:'#398ba6'},
@@ -75,20 +109,40 @@
         {fill:'#beacf9',bright:'#f5e9ff',dark:'#7765bc'},
         {fill:'#8ddd9c',bright:'#e4ffb6',dark:'#4b9872'}
       ];
-      const pts=[[52,116],[205,116],[400,112],[663,125],[883,100],[966,179],[869,280],[683,285],[465,263],[261,312],[130,419],[280,524],[502,490],[723,464],[857,527],[961,601]];
-      // Spline completamente original do tabuleiro; amostragem por comprimento de arco.
-      const curve=[];
-      function cat(a,b,c,d,t){const t2=t*t,t3=t2*t;return .5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c+d)*t3)}
-      let length=0;
-      for(let i=0;i<pts.length-1;i++){
-        let a=pts[Math.max(0,i-1)],b=pts[i],c=pts[i+1],d=pts[Math.min(pts.length-1,i+2)];
-        for(let j=0;j<42;j++){
-          let t=j/42, p={x:cat(a[0],b[0],c[0],d[0],t),y:cat(a[1],b[1],c[1],d[1],t)};
-          if(curve.length){let prev=curve[curve.length-1];length+=Math.hypot(p.x-prev.x,p.y-prev.y)}
-          p.s=length;curve.push(p);
+      const landscapePath=[[52,130],[210,130],[435,122],[685,134],[887,116],[966,185],[857,271],[665,273],[446,266],[257,323],[151,405],[283,446],[482,422],[671,400],[826,420],[950,493]];
+      const portraitPath=[[48,155],[175,154],[365,161],[416,214],[318,276],[146,278],[57,340],[154,407],[335,394],[419,469],[420,537]];
+      let pts=[],curve=[],length=0;
+      function cat(a,b,c,d,t){const t2=t*t,t3=t2*t;return .5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c)*t3)}
+      function buildCurve(){
+        curve=[];length=0;
+        for(let i=0;i<pts.length-1;i++){
+          const a=pts[Math.max(0,i-1)],b=pts[i],c=pts[i+1],d=pts[Math.min(pts.length-1,i+2)];
+          for(let j=0;j<42;j++){
+            const t=j/42,p={x:cat(a[0],b[0],c[0],d[0],t),y:cat(a[1],b[1],c[1],d[1],t)};
+            if(curve.length){const prev=curve[curve.length-1];length+=Math.hypot(p.x-prev.x,p.y-prev.y)}
+            p.s=length;curve.push(p);
+          }
         }
+        const lastPt=pts.at(-1),before=curve.at(-1);
+        length+=Math.hypot(lastPt[0]-before.x,lastPt[1]-before.y);
+        curve.push({x:lastPt[0],y:lastPt[1],s:length});
       }
-      let lastPt=pts.at(-1), before=curve.at(-1);length+=Math.hypot(lastPt[0]-before.x,lastPt[1]-before.y);curve.push({x:lastPt[0],y:lastPt[1],s:length});
+      function setLayout(){
+        const nextPortrait=window.matchMedia('(max-width: 640px) and (orientation: portrait)').matches;
+        if(curve.length && nextPortrait===portrait)return;
+        const fraction=length&&chain.length?chain[0].s/length:0;
+        portrait=nextPortrait;
+        W=portrait?480:1080;H=portrait?810:690;
+        canvas.width=W;canvas.height=H;
+        dog.x=W/2;dog.y=portrait?702:584;
+        house.x=portrait?417:958;house.y=portrait?552:518;
+        pts=portrait?portraitPath:landscapePath;
+        buildCurve();
+        // Rotação de tela conserva o avanço e a distância entre bolas.
+        if(chain.length){const front=fraction*length;chain.forEach((ball,i)=>ball.s=front-i*SPACE)}
+        shots=[];particles=[];texts=[];
+        aim={x:dog.x,y:portrait?300:270};
+      }
       function at(s){
         if(s<=0){let p=curve[0],q=curve[1],k=s/Math.max(.001,q.s-p.s);return{x:p.x+(q.x-p.x)*k,y:p.y+(q.y-p.y)*k}}
         if(s>=length)return{x:curve.at(-1).x,y:curve.at(-1).y};
@@ -97,7 +151,6 @@
         let a=curve[lo],b=curve[hi],t=(s-a.s)/(b.s-a.s||1);
         return{x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};
       }
-      const dog={x:117,y:567};
       let game='menu',score=0,best=0,combo=0,chain=[],shots=[],particles=[],texts=[],nextColor=0,loaded=0,aim={x:480,y:306};
       let time=0,lastTime=0,freeze=0,barkCooldown=0,shootCooldown=0,shakes=0,muted=false,ac=null,level=1;
       try{best=Number(localStorage.getItem('pipoRecorde')||0)}catch{}
@@ -227,9 +280,9 @@
         // Geometria do gramado: própria, sem referências ao cenário de outros jogos.
         ctx.fillStyle='#c0e6b90a';for(let i=0;i<17;i++)for(let j=0;j<12;j++)circle(i*73+((j%2)*30),j*63,3,'#c7e4bd24');
         for(let i=0;i<31;i++){let x=(i*173+40)%W,y=(i*137+30)%H;ctx.strokeStyle='#d2f7c131';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+7);ctx.lineTo(x-3,y);ctx.moveTo(x,y+7);ctx.lineTo(x+3,y-3);ctx.stroke()}
-        paw(60,265,1.1,.1);paw(1030,375,1.4,.08);paw(430,630,1.1,.08);
+        paw(60,265,1.1,.1);paw(W-50,H*.56,1.4,.08);paw(W*.4,H-50,1.1,.08);
         // Decoração das extremidades.
-        for(const [x,y,s] of [[32,595,1],[1028,35,.75],[75,42,.65],[1018,440,.8]]){
+        for(const [x,y,s] of (portrait?[[22,620,.54],[440,114,.50],[47,90,.45],[446,670,.55]]:[[32,595,1],[1028,35,.75],[75,42,.65],[1018,440,.8]])){
           circle(x,y,39*s,'#184940');circle(x+21*s,y-14*s,29*s,'#2f7451');circle(x-16*s,y-18*s,24*s,'#368359');
           for(let i=0;i<5;i++)circle(x+Math.cos(i*3)*20*s,y+Math.sin(i*4)*20*s,2*s,'#f6dc7e');
         }
@@ -241,11 +294,11 @@
         trace();ctx.strokeStyle='#e8d9b7';ctx.lineWidth=26;ctx.stroke();
         trace();ctx.strokeStyle='#faf0d3aa';ctx.lineWidth=2;ctx.setLineDash([7,18]);ctx.stroke();ctx.setLineDash([]);
         // Marcador inicial com placa de parque.
-        rr(10,37,103,38,12,'#e8f5d8','#97b67f',2);ctx.fillStyle='#285342';ctx.textAlign='center';ctx.font='bold 14px system-ui';ctx.fillText('PARTIDA',62,61);
+        const sy=portrait?95:88;rr(10,sy,103,38,12,'#e8f5d8','#97b67f',2);ctx.fillStyle='#285342';ctx.textAlign='center';ctx.font='bold 14px system-ui';ctx.fillText('PARTIDA',62,sy+24);
         drawHouse();
       }
       function drawHouse(){
-        let x=962,y=598;
+        const x=house.x,y=house.y;
         ctx.save();ctx.translate(x,y);
         ctx.fillStyle='#724c44';ctx.beginPath();ctx.moveTo(-52,-20);ctx.lineTo(0,-66);ctx.lineTo(54,-20);ctx.closePath();ctx.fill();
         ctx.fillStyle='#f1cb88';rr(-43,-24,86,69,10,'#f2cb89','#fff0c0',4);
@@ -286,9 +339,11 @@
         const bx=dog.x+Math.cos(a)*55,by=dog.y-28+Math.sin(a)*55;
         ctx.strokeStyle='#714c39';ctx.lineWidth=10;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(dog.x+12,dog.y+6);ctx.lineTo(bx-7,by+7);ctx.stroke();
         ball(bx,by,loaded,19);
-        rr(18,621,188,46,18,'#133b42da','#7eb9a86b',1.3);
-        ctx.fillStyle='#f6eaca';ctx.textAlign='left';ctx.font='bold 12px system-ui';ctx.fillText('PRÓXIMA',36,639);ball(154,644,nextColor,12);
-        ctx.fillStyle='#bfded2';ctx.font='11px system-ui';ctx.fillText('X = trocar',35,658);
+        const nextX=portrait?14:18,nextY=portrait?742:625;
+        rr(nextX,nextY,portrait?143:188,46,15,'#133b42da','#7eb9a86b',1.3);
+        ctx.fillStyle='#f6eaca';ctx.textAlign='left';ctx.font='bold 12px system-ui';ctx.fillText('PRÓXIMA',nextX+16,nextY+18);
+        ball(nextX+(portrait?113:136),nextY+23,nextColor,12);
+        ctx.fillStyle='#bfded2';ctx.font='11px system-ui';ctx.fillText('X = trocar',nextX+16,nextY+36);
       }
       function frame(now){
         const dt=Math.min(.033,(now-(lastTime||now))/1000);lastTime=now;update(dt);
@@ -296,21 +351,33 @@
         ctx.save();if(shakes>0)ctx.translate(rand(-shakes,shakes),rand(-shakes,shakes));bg();
         // Sinalização suave de perigo no caminho final.
         if(chain.length){const front=chain[0].s;const danger=front/length;
-          if(danger>.75){circle(962,602,76,'#ff7960'+(Math.floor((.1+.11*Math.sin(now*.009))*255).toString(16).padStart(2,'0')))}
+          if(danger>.75){circle(house.x,house.y,76,'#ff7960'+(Math.floor((.1+.11*Math.sin(now*.009))*255).toString(16).padStart(2,'0')))}
         }
         for(const bead of chain){if(bead.s>=-R&&bead.s<=length+R){let p=at(bead.s);ball(p.x,p.y,bead.color,R*bead.scale)}}
         for(const z of shots)ball(z.x,z.y,z.color,15);
         for(const p of particles){ctx.globalAlpha=Math.max(0,p.life/p.max);circle(p.x,p.y,p.r,p.color)}ctx.globalAlpha=1;
         for(const t of texts){ctx.save();ctx.globalAlpha=Math.min(1,t.life);ctx.textAlign='center';ctx.font='900 25px system-ui';ctx.lineWidth=4;ctx.strokeStyle='#153c43';ctx.strokeText(t.value,t.x,t.y);ctx.fillStyle=t.color;ctx.fillText(t.value,t.x,t.y);ctx.restore()}
-        if(freeze>0){ctx.save();ctx.fillStyle='#b7faff14';ctx.fillRect(0,0,W,H);ctx.textAlign='center';ctx.font='900 29px system-ui';ctx.fillStyle='#d4feff';ctx.fillText('❄️  LATIDO GELADO!  ❄️',555,56);ctx.restore()}
+        if(freeze>0){ctx.save();ctx.fillStyle='#b7faff14';ctx.fillRect(0,0,W,H);ctx.textAlign='center';ctx.font='900 29px system-ui';ctx.fillStyle='#d4feff';ctx.fillText('❄️  LATIDO GELADO!  ❄️',W/2,portrait?117:96);ctx.restore()}
         drawDog();
-        // Progresso em direção à casinha.
-        rr(296,636,520,21,11,'#15463e','#99ceb277',2);
-        let progress=chain.length?Math.max(0,Math.min(1,chain[0].s/length)):0;
-        rr(300,640,Math.max(0,512*progress),13,7,progress>.77?'#fa9774':'#84d7ae');
-        ctx.fillStyle='#edffeb';ctx.textAlign='center';ctx.font='bold 12px system-ui';ctx.fillText('CAMINHO ATÉ A CASINHA',557,627);
-        if(game==='playing'&&barkCooldown>0){rr(824,29,215,44,12,'#17484cc9','#aadaca88',1);ctx.fillStyle='#e3faf4';ctx.font='bold 15px system-ui';ctx.textAlign='center';ctx.fillText(`Latido em ${Math.ceil(barkCooldown)}s`,932,56)}
-        if(game==='playing'&&barkCooldown<=0){rr(823,29,213,44,12,'#f3cf86','#fff0b4',2);ctx.fillStyle='#315351';ctx.font='900 15px system-ui';ctx.textAlign='center';ctx.fillText('🐾 LATIDO PRONTO!',930,56)}
+        // Progresso no topo, longe do personagem e da última reta.
+        const barX=portrait?30:285,barY=portrait?50:43,barW=portrait?420:495;
+        rr(barX,barY,barW,20,10,'#15463e','#99ceb277',2);
+        const progress=chain.length?Math.max(0,Math.min(1,chain[0].s/length)):0;
+        if(progress>0)rr(barX+4,barY+4,(barW-8)*progress,12,6,progress>.77?'#fa9774':'#84d7ae');
+        ctx.fillStyle='#edffeb';ctx.textAlign='center';ctx.font='bold 13px system-ui';
+        ctx.fillText('CAMINHO ATÉ A CASINHA',barX+barW/2,barY-10);
+        if(game==='playing'){
+          const bx=portrait?264:831,by=portrait?88:31,bw=portrait?203:212;
+          if(barkCooldown>0){
+            rr(bx,by,bw,35,10,'#17484cc9','#aadaca88',1);
+            ctx.fillStyle='#e3faf4';ctx.font='bold 13px system-ui';ctx.textAlign='center';
+            ctx.fillText(`Latido em ${Math.ceil(barkCooldown)}s`,bx+bw/2,by+23);
+          }else{
+            rr(bx,by,bw,35,10,'#f3cf86','#fff0b4',2);
+            ctx.fillStyle='#315351';ctx.font='900 13px system-ui';ctx.textAlign='center';
+            ctx.fillText('🐾 LATIDO PRONTO!',bx+bw/2,by+23);
+          }
+        }
         ctx.restore();requestAnimationFrame(frame);
       }
       function locate(e){let r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H}}
@@ -328,6 +395,9 @@
       $('#muteButton').addEventListener('click',()=>{muted=!muted;$('#muteButton').textContent=muted?'🔇 Som desligado':'🔊 Som ligado'});
       // Botão desabilitado visualmente apenas durante recarga.
       setInterval(()=>{$('#barkButton').disabled=game!=='playing'||barkCooldown>0;$('#barkButton').textContent=barkCooldown>0?`🐾 Latido (${Math.ceil(barkCooldown)}s)`:'🐾 Latido gelado'},200);
+      setLayout();
+      window.addEventListener('resize',setLayout,{passive:true});
+      window.addEventListener('orientationchange',setLayout,{passive:true});
       requestAnimationFrame(frame);
     })();
   </script>
