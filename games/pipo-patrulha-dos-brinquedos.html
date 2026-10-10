@@ -112,7 +112,7 @@
       const landscapePath=[[52,130],[210,130],[435,122],[685,134],[887,116],[966,185],[857,271],[665,273],[446,266],[257,323],[151,405],[283,446],[482,422],[671,400],[826,420],[950,493]];
       const portraitPath=[[48,155],[175,154],[365,161],[416,214],[318,276],[146,278],[57,340],[154,407],[335,394],[419,469],[420,537]];
       let pts=[],curve=[],length=0;
-      function cat(a,b,c,d,t){const t2=t*t,t3=t2*t;return .5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c)*t3)}
+      function cat(a,b,c,d,t){const t2=t*t,t3=t2*t;return .5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c+d)*t3)}
       function buildCurve(){
         curve=[];length=0;
         for(let i=0;i<pts.length-1;i++){
