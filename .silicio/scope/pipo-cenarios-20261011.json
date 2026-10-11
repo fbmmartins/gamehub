@@ -1,0 +1,21 @@
+{
+  "task": "Diferenciar visualmente as 12 fases do Pipo com paletas, trilhas, decorações e interface próprias",
+  "branch": "feature/pipo-cenarios-20261011",
+  "base_sha": "61aadaab458bba969c3e9ff6609d2b3d63791680",
+  "allowed_paths": [
+    "games/pipo-patrulha-dos-brinquedos.html",
+    "docs/CENARIOS_FASES.md",
+    ".silicio/scope/pipo-cenarios-20261011.json"
+  ],
+  "protected_paths": [
+    "index.html",
+    "games/snake.html",
+    "games/damas.html",
+    "games/jogo-da-velha.html",
+    "games/campo-minado.html",
+    ".github/**",
+    "worker/**",
+    "supabase/**"
+  ],
+  "approved_protected_paths": []
+}
