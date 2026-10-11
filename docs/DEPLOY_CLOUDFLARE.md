@@ -45,3 +45,11 @@ Resolver GitHub integration no Cloudflare Pages ou adotar Pages Direct Upload co
 - Worker HML `gamehub-hml-20261010`, PROD `gamehub-prod-20261010`; mesmo etag `a17b3455932996b1291b1bd59746e818a3d3b35f443c6b2ae105dc13ffddc921`.
 - Playwright local em 8 formatos de tela, fases 1→2→3 e seleção/desbloqueio passaram; Cloudflare Browser Rendering (produção) validou HTTP 200 em portal + 5 jogos, mobile 320×568/canvas 480×627, mobile 390×844/canvas 480×810, desktop 1366×768/canvas 1080×690.
 - Para rollback de código: reconstruir HML usando fontes de `checkpoint/pre-pipo-fases-20261011`, repetir testes e publicar mesmo pacote em PROD; não mexer no domínio nem na VPS para rollback de HTML.
+
+## Pipo v4 — temas exclusivos por fase (11/10/2026)
+- Release PR #7, merge `98a090fd683946a8b9e6b3db9912ce9781d3acf0`.
+- Cenários definidos no próprio HTML do Pipo, sem rede externa nem dependências novas. 12 paletas independentes e decoração vetorial determinística por fase.
+- Checkpoint: `checkpoint/pre-pipo-cenarios-20261011` @ `61aadaab458bba969c3e9ff6609d2b3d63791680`.
+- Workers homologação e produção com ETag igual: `3b6112188aa7a9af9818737f341f7b4f44089148533a6e8ec5bc1b457c1e8f47`.
+- Smoke: home + 5 jogos HTTP 200, mobile 320/390 e desktop 1366. Testes Playwright locais em 36 combinações, todas sem erros ou overflow móvel.
+- Para rollback, reconstruir o Worker de HML usando a versão do Pipo no checkpoint e os outros cinco arquivos preservados; validar e repetir o mesmo pacote em produção. Não é necessário mudar domínio, DNS ou VPS.

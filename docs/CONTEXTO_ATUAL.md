@@ -44,3 +44,13 @@ Atualizado: 10/10/2026. Fonte de verdade: GitHub + Cloudflare.
 - **Publicação concluída:** PR #5, commit merge `4cb64df04aae3636c49e9e82f8c678a953a5eef0`; HML Worker `gamehub-hml-20261010` e PROD `gamehub-prod-20261010` com **etag idêntico** `a17b3455932996b1291b1bd59746e818a3d3b35f443c6b2ae105dc13ffddc921`.
 - Cloudflare Browser Rendering (11/10/2026): rota principal e os cinco jogos HTTP 200. No Pipo: viewport 320×568 → canvas 480×627; 390×844 → 480×810; 1366×768 → 1080×690. Progressão e layout também testados localmente com Playwright.
 - Sem alterações no DNS ou na VPS; quatro jogos anteriores preservados. Próximo passo: teste manual das fases em aparelho físico e ajuste fino de jogabilidade conforme feedback.
+
+## Pipo v4 — 12 ambientes diferentes (publicado em 11/10/2026)
+- Implementação: PR #7, merge `98a090fd683946a8b9e6b3db9912ce9781d3acf0`; somente HTML do Pipo e documentação.
+- Cada uma das 12 fases tem paleta exclusiva para fundo, trilha e detalhes de cenário, com motivos vetoriais relacionados ao tema: flores, água, jardim, folhas, praia, dunas, ilha, farol, vagalumes, lua, cometas e confetes; a interface reflete a paleta escolhida.
+- Fases/mundo, progressão, mira, toque e mascote mantidos; 4 jogos antigos preservados. Catálogo de paletas em `docs/CENARIOS_FASES.md`.
+- Checkpoint pré-v4: `checkpoint/pre-pipo-cenarios-20261011` @ `61aadaab458bba969c3e9ff6609d2b3d63791680`.
+- HML Worker `gamehub-hml-20261010`; PROD `gamehub-prod-20261010`; ambos com etag `3b6112188aa7a9af9818737f341f7b4f44089148533a6e8ec5bc1b457c1e8f47`.
+- Local: 12 fases × 3 viewports (320×568, 390×844, 1366×768) = 36 validações Playwright, 12 imagens visualmente distintas em cada viewport; sem erros JS e sem rolagem horizontal/vertical no celular.
+- Cloudflare Browser Rendering: 6 rotas HTTP 200 no domínio final, incluindo o Pipo em 320/390/1366. Uma requisição inicial em 320 serviu HTML anterior devido ao cache; URL versionada de verificação confirmou os 12 cenários em 320 e 390 (HTTP 200). Servidor usa `Cache-Control: public,max-age=120`.
+- Não foram modificados DNS, outros Workers nem VPS nesta etapa. Próximo passo: teste real do usuário sobre transição entre as fases, legibilidade e desempenho.
