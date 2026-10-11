@@ -1,0 +1,21 @@
+{
+  "task": "Criar 12 fases Pipo, mascote original e ajuste responsivo height-driven mobile",
+  "branch": "feature/pipo-fases-20261011",
+  "base_sha": "2d22a8621aa947ef0f6c80f6103dc9152ed1a20b",
+  "allowed_paths": [
+    "games/pipo-patrulha-dos-brinquedos.html",
+    "docs/CONTEXTO_ATUAL.md",
+    ".silicio/scope/pipo-fases-20261011.json"
+  ],
+  "protected_paths": [
+    "index.html",
+    "games/snake.html",
+    "games/damas.html",
+    "games/jogo-da-velha.html",
+    "games/campo-minado.html",
+    ".github/**",
+    "worker/**",
+    "supabase/**"
+  ],
+  "approved_protected_paths": []
+}
