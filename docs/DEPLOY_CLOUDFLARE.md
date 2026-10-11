@@ -36,3 +36,12 @@ Na correção Pipo v2 (10/10/2026), HML e PROD foram republicados com **o mesmo 
 
 ## Evolução sugerida
 Resolver GitHub integration no Cloudflare Pages ou adotar Pages Direct Upload com CI/CD autenticado. Uma migração para Pages demanda novo checkpoint, novo preview, smoke de 6 rotas, read-back DNS e plano de rollback.
+
+## Pipo v3 — campanha e mobile responsivo (11/10/2026)
+- PR #5, merge `4cb64df04aae3636c49e9e82f8c678a953a5eef0`.
+- 12 fases em três mundos, quatro caminhos originais por mundo, dificuldade progressiva, progresso localStorage e seletor de fases.
+- Mascote próprio em WebP inline; app estático autocontido. Ajuste vertical pelo espaço disponível em `visualViewport`.
+- Gate de rollback: `checkpoint/pre-pipo-fases-20261011` @ `2d22a8621aa947ef0f6c80f6103dc9152ed1a20b`.
+- Worker HML `gamehub-hml-20261010`, PROD `gamehub-prod-20261010`; mesmo etag `a17b3455932996b1291b1bd59746e818a3d3b35f443c6b2ae105dc13ffddc921`.
+- Playwright local em 8 formatos de tela, fases 1→2→3 e seleção/desbloqueio passaram; Cloudflare Browser Rendering (produção) validou HTTP 200 em portal + 5 jogos, mobile 320×568/canvas 480×627, mobile 390×844/canvas 480×810, desktop 1366×768/canvas 1080×690.
+- Para rollback de código: reconstruir HML usando fontes de `checkpoint/pre-pipo-fases-20261011`, repetir testes e publicar mesmo pacote em PROD; não mexer no domínio nem na VPS para rollback de HTML.
