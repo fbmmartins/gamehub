@@ -34,3 +34,11 @@ Atualizado: 10/10/2026. Fonte de verdade: GitHub + Cloudflare.
 1. Abrir portal no celular e computador e validar visual e jogabilidade do Pipo.
 2. Quando MCP VPS funcionar, identificar o antigo portal na VPS sem excluir nada.
 3. Avaliar custo/uso e migração para Cloudflare Pages via Direct Upload; registrar plano/rollback antes.
+
+## Nova versão v3 — aguardando publicação (11/10/2026)
+- Branch de tarefa: `feature/pipo-fases-20261011`; checkpoint anterior: `checkpoint/pre-pipo-fases-20261011` @ `2d22a8621aa947ef0f6c80f6103dc9152ed1a20b`.
+- 12 fases em 3 ambientes originais, 4 pistas por mundo, dificuldade gradual, progresso desbloqueado em localStorage.
+- Mascote Pipo redesenhado em arte própria embutida como WebP transparente; não alterar outros jogos.
+- Mobile retrato dimensiona a **altura lógica** da pista pelo espaço disponível em `visualViewport`, preservando toda a interface sem rolagem vertical.
+- Testes locais headless em 320×568, 360×640, 390×667, 390×844, 412×915, 768×1024, 1366×768, 1440×900: nenhum erro de JavaScript, nenhuma rolagem horizontal ou vertical no mobile; testes de desbloqueio fases 1→2→3, seleção e retorno passaram.
+- Gate pendente: publicar somente Worker HML, validar, promover exatamente o mesmo artefato para Worker de produção, conferir e atualizar este contexto.
